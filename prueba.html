@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizador de Recorridos - AppMovilidad</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            margin: 0;
+            color: #333;
+            text-align: center;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .controls {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input, textarea, button {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .map-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        #map {
+            height: 500px;
+            width: 100%;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .journey-info {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .info-card {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .info-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 0.9em;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .info-card p {
+            margin: 0;
+            font-size: 1.4em;
+            font-weight: bold;
+        }
+
+        .error {
+            background: #ff6b6b;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .success {
+            background: #51cf66;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            #map {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗺️ Visualizador de Recorridos</h1>
+            <p style="text-align: center; margin: 10px 0 0 0; color: #666;">Prueba tu información de base de datos con recorridos interactivos</p>
+        </div>
+
+        <div class="controls">
+            <div class="input-group">
+                <label for="journeyData">Datos del Recorrido (JSON desde tu base de datos):</label>
+                <textarea id="journeyData" rows="6" placeholder='Pega aquí el JSON de route_points de tu consulta SQL, por ejemplo:
+[{"lat":40.7128,"lng":-74.006,"name":"New York"},{"lat":41.8781,"lng":-87.6298,"name":"Chicago"},{"lat":34.0522,"lng":-118.2437,"name":"Los Angeles"}]'></textarea>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="input-group">
+                    <label for="startLocation">Ubicación de Inicio:</label>
+                    <input type="text" id="startLocation" placeholder="Ej: New York">
+                </div>
+                
+                <div class="input-group">
+                    <label for="endLocation">Ubicación de Destino:</label>
+                    <input type="text" id="endLocation" placeholder="Ej: Los Angeles">
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                <div class="input-group">
+                    <label for="distance">Distancia (km):</label>
+                    <input type="number" id="distance" placeholder="0">
+                </div>
+                
+                <div class="input-group">
+                    <label for="duration">Duración (horas):</label>
+                    <input type="number" id="duration" placeholder="0">
+                </div>
+                
+                <div class="input-group">
+                    <label for="rating">Calificación:</label>
+                    <input type="number" id="rating" min="0" max="5" step="0.1" placeholder="0">
+                </div>
+            </div>
+
+            <button onclick="generateRoute()" id="generateBtn">
+                🚀 Generar Recorrido en Mapa
+            </button>
+
+            <button onclick="testMapStatus()" style="background: linear-gradient(45deg, #ffa726, #ff9800); margin-top: 10px;">
+                🔧 Verificar Estado del Mapa
+            </button>
+
+            <button onclick="loadSampleData()" style="background: linear-gradient(45deg, #51cf66, #40c057); margin-top: 10px;">
+                📝 Cargar Datos de Ejemplo
+            </button>
+        </div>
+
+        <div class="map-container">
+            <h2 style="margin-top: 0; color: #333;">🗺️ Mapa del Recorrido</h2>
+            <div id="map"></div>
+        </div>
+
+        <div class="journey-info">
+            <h2 style="margin-top: 0; color: #333;">📊 Información del Viaje</h2>
+            <div id="journeyDetails">
+                <p style="color: #666; text-align: center; padding: 40px;">Carga los datos de tu recorrido para ver la información detallada aquí.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        let map;
+        let routeLayer;
+        let markersLayer;
+
+        // Inicializar el mapa
+        function initMap() {
+            try {
+                map = L.map('map').setView([39.8283, -98.5795], 4); // Centro de Estados Unidos
+                
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(map);
+
+                routeLayer = L.layerGroup().addTo(map);
+                markersLayer = L.layerGroup().addTo(map);
+                
+                console.log('Mapa inicializado correctamente');
+            } catch (error) {
+                console.error('Error al inicializar el mapa:', error);
+                showMessage('❌ Error al inicializar el mapa: ' + error.message, 'error');
+            }
+        }
+
+        // Cargar datos de ejemplo (igual a tu base de datos)
+        function loadSampleData() {
+            document.getElementById('journeyData').value = JSON.stringify([
+                {"lat":40.7128,"lng":-74.006,"name":"New York"},
+                {"lat":41.8781,"lng":-87.6298,"name":"Chicago"},
+                {"lat":34.0522,"lng":-118.2437,"name":"Los Angeles"}
+            ], null, 2);
+            
+            document.getElementById('startLocation').value = 'New York';
+            document.getElementById('endLocation').value = 'Los Angeles';
+            document.getElementById('distance').value = '3944.5';
+            document.getElementById('duration').value = '42.5';
+            document.getElementById('rating').value = '4.7';
+        }
+
+        // Generar el recorrido en el mapa
+        function generateRoute() {
+            // Verificar que el mapa esté inicializado
+            if (!map) {
+                showMessage('❌ Error: El mapa no está inicializado. Recarga la página.', 'error');
+                return;
+            }
+
+            const journeyDataText = document.getElementById('journeyData').value.trim();
+            const startLocation = document.getElementById('startLocation').value;
+            const endLocation = document.getElementById('endLocation').value;
+            const distance = document.getElementById('distance').value;
+            const duration = document.getElementById('duration').value;
+            const rating = document.getElementById('rating').value;
+
+            // Limpiar capas anteriores (verificar que existan)
+            if (routeLayer) {
+                routeLayer.clearLayers();
+            }
+            if (markersLayer) {
+                markersLayer.clearLayers();
+            }
+
+            try {
+                // Parsear los datos JSON
+                const routePoints = JSON.parse(journeyDataText);
+                
+                if (!Array.isArray(routePoints) || routePoints.length < 2) {
+                    throw new Error('Se necesitan al menos 2 puntos para crear un recorrido');
+                }
+
+                // Validar que cada punto tenga lat y lng
+                for (let point of routePoints) {
+                    if (!point.lat || !point.lng) {
+                        throw new Error('Cada punto debe tener propiedades "lat" y "lng"');
+                    }
+                }
+
+                // Crear marcadores
+                routePoints.forEach((point, index) => {
+                    const isStart = index === 0;
+                    const isEnd = index === routePoints.length - 1;
+                    
+                    let icon = '📍';
+                    let color = '#667eea';
+                    
+                    if (isStart) {
+                        icon = '🏁';
+                        color = '#51cf66';
+                    } else if (isEnd) {
+                        icon = '🎯';
+                        color = '#ff6b6b';
+                    }
+
+                    const marker = L.circleMarker([point.lat, point.lng], {
+                        radius: 12,
+                        fillColor: color,
+                        color: 'white',
+                        weight: 3,
+                        fillOpacity: 0.9
+                    }).addTo(markersLayer);
+
+                    // Popup con información
+                    const popupContent = `
+                        <div style="text-align: center;">
+                            <div style="font-size: 20px; margin-bottom: 5px;">${icon}</div>
+                            <strong>${point.name || 'Punto ' + (index + 1)}</strong><br>
+                            <small>Lat: ${point.lat.toFixed(4)}, Lng: ${point.lng.toFixed(4)}</small>
+                            ${isStart ? '<br><span style="color: #51cf66;">🏁 Inicio</span>' : ''}
+                            ${isEnd ? '<br><span style="color: #ff6b6b;">🎯 Destino</span>' : ''}
+                        </div>
+                    `;
+                    marker.bindPopup(popupContent);
+                });
+
+                // Crear línea de ruta
+                const latLngs = routePoints.map(point => [point.lat, point.lng]);
+                const polyline = L.polyline(latLngs, {
+                    color: '#667eea',
+                    weight: 4,
+                    opacity: 0.8,
+                    dashArray: '10, 5'
+                }).addTo(routeLayer);
+
+                // Ajustar vista del mapa
+                map.fitBounds(polyline.getBounds(), { padding: [20, 20] });
+
+                // Mostrar información del viaje
+                showJourneyInfo({
+                    startLocation,
+                    endLocation,
+                    distance: parseFloat(distance) || 0,
+                    duration: parseFloat(duration) || 0,
+                    rating: parseFloat(rating) || 0,
+                    pointsCount: routePoints.length
+                });
+
+                showMessage('✅ Recorrido generado exitosamente', 'success');
+
+            } catch (error) {
+                showMessage('❌ Error al procesar los datos: ' + error.message, 'error');
+                console.error('Error:', error);
+            }
+        }
+
+        // Mostrar información del viaje
+        function showJourneyInfo(info) {
+            const detailsDiv = document.getElementById('journeyDetails');
+            
+            detailsDiv.innerHTML = `
+                <div class="info-grid">
+                    <div class="info-card">
+                        <h3>🏁 Origen</h3>
+                        <p>${info.startLocation || 'No especificado'}</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>🎯 Destino</h3>
+                        <p>${info.endLocation || 'No especificado'}</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>📏 Distancia</h3>
+                        <p>${info.distance.toFixed(1)} km</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>⏱️ Duración</h3>
+                        <p>${info.duration.toFixed(1)} hrs</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>⭐ Calificación</h3>
+                        <p>${info.rating.toFixed(1)}/5</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>📍 Puntos de Ruta</h3>
+                        <p>${info.pointsCount} puntos</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Mostrar mensajes
+        function showMessage(message, type) {
+            // Remover mensajes anteriores
+            const existingMessages = document.querySelectorAll('.error, .success');
+            existingMessages.forEach(msg => msg.remove());
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type;
+            messageDiv.textContent = message;
+            
+            document.querySelector('.controls').appendChild(messageDiv);
+            
+            // Remover después de 5 segundos
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 5000);
+        }
+
+        // Función para verificar el estado del mapa
+        function testMapStatus() {
+            console.log('=== DIAGNÓSTICO DEL MAPA ===');
+            console.log('Leaflet disponible:', typeof L !== 'undefined');
+            console.log('Mapa inicializado:', !!map);
+            console.log('routeLayer inicializada:', !!routeLayer);
+            console.log('markersLayer inicializada:', !!markersLayer);
+            
+            if (typeof L === 'undefined') {
+                showMessage('❌ Leaflet no está cargado. Verifica la conexión a internet.', 'error');
+                return;
+            }
+            
+            if (!map) {
+                showMessage('⚠️ El mapa no está inicializado. Intentando inicializar...', 'error');
+                try {
+                    initMap();
+                    showMessage('✅ Mapa inicializado correctamente', 'success');
+                } catch (error) {
+                    showMessage('❌ No se pudo inicializar el mapa: ' + error.message, 'error');
+                }
+                return;
+            }
+            
+            if (!routeLayer || !markersLayer) {
+                showMessage('⚠️ Las capas del mapa no están disponibles. Reinicializando...', 'error');
+                routeLayer = L.layerGroup().addTo(map);
+                markersLayer = L.layerGroup().addTo(map);
+                showMessage('✅ Capas del mapa reinicializadas', 'success');
+                return;
+            }
+            
+            showMessage('✅ Todo el sistema del mapa está funcionando correctamente', 'success');
+        }
+
+        // Inicializar cuando se carga la página
+        window.onload = function() {
+            // Esperar un poco para asegurar que Leaflet esté completamente cargado
+            setTimeout(() => {
+                initMap();
+                loadSampleData(); // Cargar datos de ejemplo automáticamente
+            }, 100);
+        };
+
+        // También inicializar cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof L !== 'undefined') {
+                setTimeout(() => {
+                    if (!map) {
+                        initMap();
+                        loadSampleData();
+                    }
+                }, 200);
+            } else {
+                console.error('Leaflet no está cargado');
+                showMessage('❌ Error: No se pudo cargar la librería de mapas', 'error');
+            }
+        });
+    </script>
+</body>
+</html>
