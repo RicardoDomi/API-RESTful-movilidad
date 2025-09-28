@@ -1,0 +1,35 @@
+:root{
+  --bg-a:#f0f6ff; --muted:#64748b; --brand:#0ea5e9; --brand-dark:#0b6fc2;
+  --pill-bg:#eef2ff; --card-shadow: 0 18px 50px rgba(2,6,23,.15);
+  --ring:#cfe8ff;
+}
+html,body{height:100%}
+body{
+  background: radial-gradient(1000px 500px at -10% -15%, #dbeafe 0%, transparent 60%),
+              radial-gradient(800px 400px at 120% 0%, #e0f2fe 0%, transparent 60%),
+              var(--bg-a);
+  color:#0f172a;
+}
+
+.container-max{ max-width: 1200px; }
+.hero{ display:grid; gap:2rem; align-items:center; grid-template-columns: 1.15fr 1fr; }
+@media (max-width: 992px){ .hero{ grid-template-columns: 1fr } .viz{order:2} .panel{order:1} }
+.viz-card{ background:#ffffffcc; border:1px solid #e5e7eb; border-radius:20px; padding:28px; box-shadow:var(--card-shadow); }
+.viz-stage{ position:relative; width:100%; height:420px; border-radius:14px; overflow:hidden; }
+.viz-grid{ position:absolute; inset:0; opacity:.6; }
+.viz-legend{ position:absolute; left:16px; bottom:16px; background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:10px 12px; box-shadow:0 10px 26px rgba(2,6,23,.08) }
+.viz-pill{ font-size:.9rem; }
+.brand{ display:flex; align-items:center; gap:.6rem; font-weight:800; font-size:1.25rem; color:#0b5ed7; }
+.brand .logo{ width:36px; height:36px; border-radius:10px; display:inline-flex; align-items:center; justify-content:center; background:#e0f2fe; color:#0284c7; }
+.login-card{ background:#fff; border:1px solid #e6eaf0; border-radius:18px; box-shadow:var(--card-shadow); }
+.tabs{ background: var(--pill-bg); border-radius: 12px; padding:4px; display:flex; gap:4px; border:1px solid #e5e7eb; }
+.tab-btn{ flex:1; border:none; background:transparent; padding:8px 12px; font-weight:700; border-radius:10px; color:#0f172a; }
+.tab-btn.active{ background:#fff; border:1px solid #e5e7eb; box-shadow: 0 0 0 3px var(--ring) inset; }
+.form-text-muted{ color: var(--muted); }
+.form-control{ border-radius: 10px; }
+.input-group .input-group-text{ border-radius:10px 0 0 10px }
+.btn-brand{ background: linear-gradient(90deg,#1d74e7,#0ea5e9); border:none; font-weight:800; }
+.btn-brand:hover{ background: linear-gradient(90deg,#165fbb,#0b6fc2) }
+.muted{ color:#94a3b8 }
+.feature{ display:flex; flex-direction:column; align-items:center; gap:.35rem; }
+.feature .icon{ width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center; background:#e0f2fe; color:#0369a1; font-size:1.25rem; box-shadow:0 8px 20px rgba(2,6,23,.08); }
