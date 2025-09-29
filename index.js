@@ -7,7 +7,7 @@ const journeysRoutes = require('./src/routes/journey');
 const helmet = require('helmet');
 const path = require('path')
 
-
+const token = require("../API-RESTful-movilidad/src/middleware/token");
 
 
 dotenv.config();
@@ -18,7 +18,7 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(helmet({contentSecurityPolicy: false, crossOriginResourcePolicy: {policy: 'cross-origin'},}));
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/auth', authRoutes);
+app.use('/auth', token,authRoutes);
 
 app.use('/routes', journeysRoutes);
 
