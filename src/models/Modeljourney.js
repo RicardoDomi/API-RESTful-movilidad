@@ -1,7 +1,7 @@
 const {DataTypes} = require('sequelize');
 const sequelize = require('../config/Authdatabase');
 
-const NewJourney = sequelize.define(
+const ModelJourney = sequelize.define(
     'journeys',{
         id:{type: DataTypes.INTEGER, primaryKey:true, autoIncrement:true },
         start_location:{type: DataTypes.STRING, allowNull:false},
@@ -18,4 +18,4 @@ const NewJourney = sequelize.define(
     }
 )
 
-module.exports = NewJourney;
+module.exports = ModelJourney;
