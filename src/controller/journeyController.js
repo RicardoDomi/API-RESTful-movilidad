@@ -1,5 +1,6 @@
 const newJourneyService = require("../service/newJourneyService");
 const getAllJourneysService = require("../service/getAllJourneysService");
+const {getJourneyByIdService} = require("../service/getJourneysByIDService");
 
 exports.createJourney = async (req, res) => {
          try {
@@ -23,3 +24,16 @@ exports.getAllJourneys = async (req, res) => {
         res.status(500).json({ error: "Error al obtener los viajes" });
     }
 }
+
+exports.getJourneyById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const journey = await getJourneyByIdService(id);
+    res.status(200).json({
+      message: "Viaje obtenido exitosamente",
+      journey: journey
+    });
+  } catch (error) {
+    res.status(404).json({ error: error.message || "Error al obtener el viaje" });
+  }
+};
