@@ -8,13 +8,6 @@ const pino = require("pino");
 const pinoHttp = require('pino-http');
 dotenv.config();
 
-const express = require('express');
-const dotenv = require('dotenv');
-
-const authRoutes = require('./src/routes/auth');
-const journeysRoutes = require('./src/routes/journey');
-
-const helmet = require('helmet');
 const path = require('path')
 
 
@@ -38,13 +31,12 @@ app.use(pinoHttp());
 app.use(express.json());
 
 app.use(helmet());
-app.use("/auth", authRoutes);
+
 
 app.use(helmet({contentSecurityPolicy: false, crossOriginResourcePolicy: {policy: 'cross-origin'},}));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/auth', authRoutes);
 
-app.use('/routes', journeysRoutes);
 
 
 app.use("/routes", journeysRoutes);
