@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MobilityTrack • Acceso</title>
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+  <link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet">
+  <link href="/assets/css/login.css" rel="stylesheet">   
+  <link href="/assets/css/map.css" rel="stylesheet">     
+</head>
+<body>
+  <header class="py-4">
+    <div class="container container-max d-flex align-items-center justify-content-between">
+      <div class="brand">
+        <span class="logo"><i class="bi bi-diagram-3"></i></span>
+        MobilityTrack
+      </div>
+      <span class="text-secondary">Plataforma de registro y análisis de recorridos urbanos</span>
+    </div>
+  </header>
+
+  <main class="pb-5">
+    <div class="container container-max">
+      <section class="hero">
+
+        <div class="viz">
+          <div class="viz-card">
+            <div id="map" class="viz-stage"></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="login-card p-3 p-md-4">
+            <div class="tabs mb-3">
+              <button class="tab-btn active" id="tab-login" type="button">Iniciar Sesión</button>
+              <button class="tab-btn" id="tab-register" type="button">Registrarse</button>
+            </div>
+
+            <div class="px-2 px-md-3 pb-2">
+              <h5 class="mb-1">Bienvenido de vuelta</h5>
+              <div class="form-text text-secondary mb-3">Accede a tu dashboard de movilidad</div>
+
+              <div id="alert" class="alert alert-danger d-none"></div>
+              <div id="ok" class="alert alert-success d-none"></div>
+
+              <form id="loginForm" novalidate>
+                <div class="mb-3">
+                  <label class="form-label">Email</label>
+                  <input class="form-control" type="email" name="email" placeholder="conductor@mobilitytrack.com" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Contraseña</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                    <input class="form-control" type="password" name="password" placeholder="********" minlength="8" required>
+                    <button class="btn btn-outline-secondary" type="button" id="togglePwd"><i class="bi bi-eye"></i></button>
+                  </div>
+                </div>
+                <button class="btn btn-primary w-100 py-2" type="submit">Iniciar Sesión</button>
+                <div class="text-center mt-2">
+                  <a class="link-secondary text-decoration-none" href="#">¿Olvidaste tu contraseña?</a>
+                </div>
+              </form>
+
+              <form id="registerForm" class="d-none" novalidate>
+                <div class="mb-3">
+                  <label class="form-label">Nombre</label>
+                  <input class="form-control" type="text" name="name" placeholder="Tu nombre" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Email</label>
+                  <input class="form-control" type="email" name="email" placeholder="tucorreo@ejemplo.com" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Contraseña</label>
+                  <input class="form-control" type="password" name="password" placeholder="********" minlength="8" required>
+                </div>
+                <button class="btn btn-primary w-100 py-2" type="submit">Crear cuenta</button>
+              </form>
+            </div>
+          </div>
+
+          <div class="d-flex align-items-center justify-content-center gap-5 mt-4 flex-wrap">
+            <div class="feature">
+              <div class="icon"><i class="bi bi-geo-alt"></i></div>
+              <div>Tracking GPS</div>
+              <small class="text-secondary">Rutas en vivo</small>
+            </div>
+            <div class="feature">
+              <div class="icon" style="background:#fdecec;color:#b91c1c;"><i class="bi bi-graph-up-arrow"></i></div>
+              <div>Rutas Optimizadas</div>
+              <small class="text-secondary">Ahorra tiempo</small>
+            </div>
+            <div class="feature">
+              <div class="icon" style="background:#e6ecff;color:#1e3a8a;"><i class="bi bi-people"></i></div>
+              <div>Gestión de Flota</div>
+              <small class="text-secondary">Control total</small>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script defer src="/assets/js/map.classic.js"></script>
+  <script defer src="/assets/js/tabs-login.classic.js"></script>
+</body>
+</html>
