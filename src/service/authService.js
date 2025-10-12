@@ -1,9 +1,7 @@
 const Modelauth = require('../models/Modelauth');
 
-exports.getUserByEmail = async (email) => {
+exports.getUserByUsername = async (username) => {
   return await Modelauth.findOne({
-    where: {
-      email: email
-    }
+    where: { username }
   });
 };

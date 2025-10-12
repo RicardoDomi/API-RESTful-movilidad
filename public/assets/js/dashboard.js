@@ -1,12 +1,12 @@
-
 (function(){
-  const API_BASE = ""; // same origin
+  const API_BASE = ""; 
   let map, markersLayer;
   let journeys = [];
-  const history = []; // simple in-memory for demo
+  const history = [];
 
-  function fmtKm(km){ return `${Number(km).toFixed(2)} km`; }
-  function fmtMin(min){ return `${Number(min).toFixed(1)} min`; }
+  const $ = (id)=> document.getElementById(id);
+  const fmtKm = (km)=> `${Number(km).toFixed(2)} km`;
+  const fmtMin = (min)=> `${Number(min).toFixed(1)} min`;
 
   function initMap() {
     map = L.map('map').setView([20.6736, -103.344], 12);
@@ -24,42 +24,35 @@
       const latlngs = points.map(p => [p.lat || p.latitude, p.lng || p.longitude]);
       const poly = L.polyline(latlngs).addTo(markersLayer);
       map.fitBounds(poly.getBounds(), { padding: [20,20] });
-    }
-    // Fallback: place start/end markers if we have names only
-    if (!points.length) {
+    } else {
       const center = map.getCenter();
       L.marker(center).bindPopup(`${j.start_location} → ${j.end_location}`).addTo(markersLayer).openPopup();
     }
   }
 
   function computeOptimal() {
-    if (!journeys.length) {
-      document.getElementById('optimalRoute').textContent = "Sin datos todavía.";
-      return;
-    }
+    if (!journeys.length) return ($('optimalRoute').textContent = "Sin datos todavía.");
     const byDistance = [...journeys].sort((a,b)=>a.distance-b.distance)[0];
     const byDuration = [...journeys].sort((a,b)=>a.duration-b.duration)[0];
     const best = (byDuration.duration <= byDistance.duration) ? byDuration : byDistance;
-    document.getElementById('optimalRoute').innerHTML = `
+    $('optimalRoute').innerHTML = `
       <div><strong>Mejor estimación:</strong> ${best.start_location} → ${best.end_location}</div>
       <div><span class="badge bg-success me-1">Distancia</span> ${fmtKm(best.distance)}</div>
       <div><span class="badge bg-info me-1">Duración</span> ${fmtMin(best.duration)}</div>
       <button class="btn btn-sm btn-outline-primary mt-2" id="verEnMapa">Ver en mapa</button>
     `;
-    document.getElementById('verEnMapa').onclick = ()=> drawJourneyOnMap(best);
+    $('verEnMapa').onclick = ()=> drawJourneyOnMap(best);
   }
 
   function renderLists(filter="") {
-    const jl = document.getElementById('journeysList');
-    jl.innerHTML = "";
-    const pl = document.getElementById('popularList');
-    pl.innerHTML = "";
-    const hl = document.getElementById('historyList');
-    hl.innerHTML = "";
+    const jl = $('journeysList'); jl.innerHTML = "";
+    const pl = $('popularList'); pl.innerHTML = "";
+    const hl = $('historyList'); hl.innerHTML = "";
 
-    const filtered = journeys.filter(j => 
-      (j.start_location && j.start_location.toLowerCase().includes(filter)) ||
-      (j.end_location && j.end_location.toLowerCase().includes(filter))
+    const f = filter.trim().toLowerCase();
+    const filtered = journeys.filter(j =>
+      (j.start_location && j.start_location.toLowerCase().includes(f)) ||
+      (j.end_location && j.end_location.toLowerCase().includes(f))
     );
 
     filtered.forEach(j => {
@@ -75,14 +68,12 @@
         </div>`;
       li.querySelector("button").onclick = () => {
         drawJourneyOnMap(j);
-        // push to history
         history.unshift({id:j.id, start:j.start_location, end:j.end_location, ts: new Date().toISOString()});
         renderHistory();
       };
       jl.appendChild(li);
     });
 
-    // populares
     journeys.filter(j => j.is_popular).forEach(j=>{
       const li = document.createElement('li');
       li.className = "list-group-item d-flex justify-content-between";
@@ -92,8 +83,7 @@
   }
 
   function renderHistory() {
-    const hl = document.getElementById('historyList');
-    hl.innerHTML = "";
+    const hl = $('historyList'); hl.innerHTML = "";
     history.slice(0,10).forEach(h => {
       const li = document.createElement('li');
       li.className = "list-group-item d-flex justify-content-between";
@@ -107,20 +97,24 @@
     const res = await fetch(`${API_BASE}/routes/all_journeys`);
     if (!res.ok) throw new Error("No fue posible cargar /routes/all_journeys");
     const data = await res.json();
-    journeys = Array.isArray(data.journeys) ? data.journeys : (data || []);
+    journeys = Array.isArray(data.journeys) ? data.journeys : (Array.isArray(data) ? data : []);
     computeOptimal();
-    renderLists(document.getElementById('filterText').value.trim().toLowerCase());
+    renderLists($('filterText').value);
+    const m = $('metrics');
+    m.innerHTML = `
+      <div>Total recorridos: <strong>${journeys.length}</strong></div>
+      <div>Populares: <strong>${journeys.filter(j=>j.is_popular).length}</strong></div>
+      <div>Uso acumulado: <strong>${journeys.reduce((s,j)=>s+(j.usage_count||0),0)}</strong></div>
+    `;
   }
 
-  async function createJourney(formData) {
-    const payload = Object.fromEntries(new FormData(formData).entries());
+  async function createJourney(form) {
+    const payload = Object.fromEntries(new FormData(form).entries());
     payload.distance = Number(payload.distance);
     payload.duration = Number(payload.duration);
     payload.date_time = new Date(payload.date_time).toISOString();
     try {
-      if (payload.route_points) {
-        payload.route_points = JSON.parse(payload.route_points);
-      }
+      if (payload.route_points) payload.route_points = JSON.parse(payload.route_points);
     } catch(e){ payload.route_points = []; }
     const res = await fetch(`${API_BASE}/routes/new_journey`, {
       method: "POST",
@@ -137,29 +131,20 @@
   }
 
   function boot(){
-    document.getElementById('username').textContent = parseUsernameFromStorage();
+    $('username').textContent = parseUsernameFromStorage();
     initMap();
     loadJourneys().catch(err=>{
-      document.getElementById('optimalRoute').textContent = "Error cargando datos.";
+      $('optimalRoute').textContent = "Error cargando datos.";
       console.error(err);
     });
-    document.getElementById('btnRefrescar').onclick = ()=> loadJourneys();
-    document.getElementById('filterText').addEventListener('input', (e)=> {
-      renderLists(e.target.value.trim().toLowerCase());
-    });
-    document.getElementById('newJourneyForm').addEventListener('submit', async (e)=>{
+    $('btnRefrescar').onclick = ()=> loadJourneys();
+    $('filterText').addEventListener('input', (e)=> renderLists(e.target.value));
+    $('newJourneyForm').addEventListener('submit', async (e)=>{
       e.preventDefault();
-      try {
-        await createJourney(e.target);
-        e.target.reset();
-      } catch(err){
-        alert(err.message);
-      }
+      try { await createJourney(e.target); e.target.reset(); }
+      catch(err){ alert(err.message); }
     });
-    document.getElementById('logoutBtn').onclick = ()=>{
-      localStorage.removeItem("mobility_user");
-      location.href = "/login";
-    };
+    $('logoutBtn').onclick = ()=>{ localStorage.removeItem("mobility_user"); location.href="/login"; };
   }
 
   if (document.readyState !== "loading") boot();
