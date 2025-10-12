@@ -6,6 +6,7 @@ const helmet = require("helmet");
 const authRoutes = require("./src/routes/auth");
 const pino = require("pino");
 const pinoHttp = require('pino-http');
+const morgan = require('morgan');
 dotenv.config();
 
 const path = require('path')
@@ -29,9 +30,9 @@ const PORT = process.env.PORT || 3000;
 
 app.use(pinoHttp());
 app.use(express.json());
-
+app.use(morgan('combined'));
 app.use(helmet());
-
+ 
 
 app.use(helmet({contentSecurityPolicy: false, crossOriginResourcePolicy: {policy: 'cross-origin'},}));
 app.use(express.static(path.join(__dirname, 'public')));
