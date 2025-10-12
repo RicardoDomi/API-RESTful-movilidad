@@ -1,0 +1,5 @@
+
+body { background: #f7f9fc; }
+.card-header { font-weight: 600; }
+.list-group-item { display: flex; align-items: center; justify-content: space-between; }
+.badge-soft { background: rgba(13,110,253,.1); color: #0d6efd; }

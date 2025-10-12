@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MobilityTrack • Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet">
+  <link href="/assets/css/dashboard.css" rel="stylesheet">
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#"><i class="bi bi-speedometer2 me-2"></i>MobilityTrack</a>
+      <div class="d-flex ms-auto align-items-center gap-3">
+        <span id="username" class="text-light small"></span>
+        <button id="logoutBtn" class="btn btn-outline-light btn-sm">Cerrar sesión</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container-fluid my-3">
+    <div class="row g-3">
+      <div class="col-12 col-xl-8">
+        <div class="card shadow-sm">
+          <div class="card-header d-flex align-items-center justify-content-between">
+            <span><i class="bi bi-geo-alt me-2"></i>Mapa y selección de recorridos</span>
+            <div class="d-flex gap-2">
+              <input id="filterText" class="form-control form-control-sm" placeholder="Filtrar por origen/destino">
+              <button id="btnRefrescar" class="btn btn-sm btn-secondary">Refrescar</button>
+            </div>
+          </div>
+          <div class="card-body p-0">
+            <div id="map" style="height: 480px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-xl-4">
+        <div class="card shadow-sm mb-3">
+          <div class="card-header"><i class="bi bi-lightning-charge me-2"></i>Ruta más óptima</div>
+          <div class="card-body">
+            <div id="optimalRoute" class="small text-secondary">Calculando…</div>
+          </div>
+        </div>
+
+        <div class="card shadow-sm mb-3">
+          <div class="card-header"><i class="bi bi-list-ul me-2"></i>Recorridos</div>
+          <div class="card-body">
+            <ul id="journeysList" class="list-group small"></ul>
+          </div>
+        </div>
+
+        <div class="card shadow-sm">
+          <div class="card-header"><i class="bi bi-clock-history me-2"></i>Historial de recorridos</div>
+          <div class="card-body">
+            <ul id="historyList" class="list-group small"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 mt-1">
+      <div class="col-12 col-xl-4">
+        <div class="card shadow-sm">
+          <div class="card-header"><i class="bi bi-star me-2"></i>Recorridos populares</div>
+          <div class="card-body">
+            <ul id="popularList" class="list-group small"></ul>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-xl-4">
+        <div class="card shadow-sm">
+          <div class="card-header"><i class="bi bi-graph-up me-2"></i>Métricas rápidas</div>
+          <div class="card-body">
+            <div id="metrics" class="small"></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-xl-4">
+        <div class="card shadow-sm">
+          <div class="card-header"><i class="bi bi-plus-circle me-2"></i>Crear nuevo recorrido</div>
+          <div class="card-body">
+            <form id="newJourneyForm" class="row g-2 small">
+              <div class="col-12">
+                <label class="form-label mb-1">Origen</label>
+                <input class="form-control form-control-sm" name="start_location" required>
+              </div>
+              <div class="col-12">
+                <label class="form-label mb-1">Destino</label>
+                <input class="form-control form-control-sm" name="end_location" required>
+              </div>
+              <div class="col-6">
+                <label class="form-label mb-1">Distancia (km)</label>
+                <input class="form-control form-control-sm" name="distance" type="number" step="0.01" required>
+              </div>
+              <div class="col-6">
+                <label class="form-label mb-1">Duración (min)</label>
+                <input class="form-control form-control-sm" name="duration" type="number" step="0.1" required>
+              </div>
+              <div class="col-12">
+                <label class="form-label mb-1">Fecha y hora</label>
+                <input class="form-control form-control-sm" name="date_time" type="datetime-local" required>
+              </div>
+              <div class="col-12">
+                <label class="form-label mb-1">Puntos de ruta (JSON opcional)</label>
+                <textarea class="form-control form-control-sm" name="route_points" rows="3" placeholder='[{"lat":20.67,"lng":-103.35}, ...]'></textarea>
+              </div>
+              <div class="col-12 d-grid">
+                <button class="btn btn-primary btn-sm" type="submit">Guardar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="/assets/js/dashboard.js"></script>
+</body>
+</html>
