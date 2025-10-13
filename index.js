@@ -1,4 +1,3 @@
-
 const express = require("express");
 const dotenv = require("dotenv");
 const journeysRoutes = require("./src/routes/journey");
@@ -8,16 +7,7 @@ const pino = require("pino");
 const pinoHttp = require('pino-http');
 dotenv.config();
 
-const express = require('express');
-const dotenv = require('dotenv');
-
-const authRoutes = require('./src/routes/auth');
-const journeysRoutes = require('./src/routes/journey');
-
-const helmet = require('helmet');
 const path = require('path')
-
-
 
 const logger = pino({
   level: process.env.LOG_LEVEL || "info",
@@ -37,15 +27,9 @@ const PORT = process.env.PORT || 3000;
 app.use(pinoHttp());
 app.use(express.json());
 
-app.use(helmet());
-app.use("/auth", authRoutes);
-
 app.use(helmet({contentSecurityPolicy: false, crossOriginResourcePolicy: {policy: 'cross-origin'},}));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/auth', authRoutes);
-
-app.use('/routes', journeysRoutes);
-
 
 app.use("/routes", journeysRoutes);
 

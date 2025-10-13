@@ -16,6 +16,6 @@ const rules = [
     .withMessage("Minimo 8 caracteres"),
 ];
 
-router.post("/auth",rules, authController.loginUser);
+router.post("/",rules, authController.loginUser);
 
 module.exports = router;
