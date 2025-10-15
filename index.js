@@ -5,10 +5,11 @@ const pino = require("pino");
 const pinoHttp = require("pino-http");
 const morgan = require("morgan");
 const path = require("path");
-
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./src/docs/openApi.json');
 const journeysRoutes = require("./src/routes/journey");
 const authRoutes = require("./src/routes/auth");
-
+const swaggerDocument = require(path.join(__dirname, "src", "docs", "openapi.json"));
 dotenv.config();
 
 const logger = pino({
@@ -28,7 +29,7 @@ app.use(morgan("dev"));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use(express.static(path.join(__dirname, "public")));
 

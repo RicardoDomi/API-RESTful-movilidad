@@ -1,0 +1,272 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "API RESTful Movilidad",
+    "version": "1.0.0",
+    "description": "Documentación interactiva de la API RESTful Movilidad"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Servidor local"
+    }
+  ],
+  "tags": [
+    { "name": "Auth", "description": "Endpoints de autenticación" },
+    { "name": "Journeys", "description": "Gestión de recorridos" }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "username": { "type": "string", "example": "juanperez" },
+          "name": { "type": "string", "example": "Juan Pérez" },
+          "gmail": { "type": "string", "example": "juan@example.com" }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "gmail": { "type": "string", "example": "juan@example.com" },
+          "username": { "type": "string", "example": "juanperez" },
+          "password": { "type": "string", "example": "123456789" }
+        },
+        "required": ["password"]
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean", "example": true },
+          "token": { "type": "string", "example": "eyJhbGciOi..." },
+          "user": { "$ref": "#/components/schemas/User" }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean", "example": false },
+          "msg": { "type": "string", "example": "Credenciales inválidas" }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/auth/": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Login principal con validaciones de reglas",
+        "description": "Autentica al usuario usando reglas de validación y devuelve un token JWT si las credenciales son correctas.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "gmail": { "type": "string", "example": "juan@example.com" },
+                  "password": { "type": "string", "example": "123456789" }
+                },
+                "required": ["gmail", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Inicio de sesión exitoso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": { "type": "boolean", "example": true },
+                    "token": { "type": "string", "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." },
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Faltan credenciales o datos inválidos" },
+          "401": { "description": "Credenciales incorrectas" },
+          "422": { "description": "Error de validación (rules)" }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Iniciar sesión (gmail o username + password)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LoginRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Inicio de sesión correcto",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LoginResponse" }
+              }
+            }
+          },
+          "400": { "description": "Faltan credenciales" },
+          "401": { "description": "Credenciales inválidas" }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "Perfil del usuario autenticado",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Usuario autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": { "type": "boolean", "example": true },
+                    "user": { "$ref": "#/components/schemas/User" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "No autorizado" }
+        }
+      }
+    },
+    "/routes/new_journey": {
+      "post": {
+        "tags": ["Journeys"],
+        "summary": "Crear un nuevo recorrido",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "origin": { "type": "string", "example": "CUTonala" },
+                  "destination": { "type": "string", "example": "Parque Metropolitano" },
+                  "distance": { "type": "number", "example": 10.5 },
+                  "duration": { "type": "number", "example": 25 },
+                  "mode": { "type": "string", "example": "auto" }
+                },
+                "required": ["origin", "destination"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Recorrido creado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": { "type": "boolean", "example": true },
+                    "journeyId": { "type": "integer", "example": 7 },
+                    "message": { "type": "string", "example": "Journey created successfully" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Datos inválidos" },
+          "401": { "description": "Token no válido o faltante" }
+        }
+      }
+    },
+    "/routes/all_journeys": {
+      "get": {
+        "tags": ["Journeys"],
+        "summary": "Obtener todos los recorridos",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Lista de recorridos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": { "type": "integer", "example": 1 },
+                      "origin": { "type": "string", "example": "CUTonala" },
+                      "destination": { "type": "string", "example": "Parque Metropolitano" },
+                      "distance": { "type": "number", "example": 10.5 },
+                      "duration": { "type": "number", "example": 25 },
+                      "mode": { "type": "string", "example": "auto" },
+                      "createdAt": { "type": "string", "format": "date-time", "example": "2025-10-15T18:23:00Z" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Token no válido o faltante" }
+        }
+      }
+    },
+    "/routes/journey/{id}": {
+      "get": {
+        "tags": ["Journeys"],
+        "summary": "Obtener un recorrido por su ID",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer", "example": 3 },
+            "description": "ID del recorrido"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Recorrido encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "integer", "example": 3 },
+                    "origin": { "type": "string", "example": "CUTonala" },
+                    "destination": { "type": "string", "example": "Centro" },
+                    "distance": { "type": "number", "example": 12.7 },
+                    "duration": { "type": "number", "example": 30 },
+                    "mode": { "type": "string", "example": "auto" }
+                  }
+                }
+              }
+            }
+          },
+          "404": { "description": "Recorrido no encontrado" },
+          "401": { "description": "Token no válido o faltante" }
+        }
+      }
+    }
+  }
+}
