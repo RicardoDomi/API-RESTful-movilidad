@@ -13,7 +13,7 @@ const swaggerDocument = require(path.join(__dirname, "src", "docs", "openapi.jso
 dotenv.config();
 
 
-const path = require('path')
+
 
 const logger = pino({
   level: process.env.LOG_LEVEL || "info",

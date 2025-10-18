@@ -1,10 +1,5 @@
-
-const {validationResult} = require('express-validator');
-const authService = require('../service/authService');
-const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const authService = require('../service/authService');
-
 
 exports.loginUser = async (req, res) => {
   const errors = validationResult(req);
@@ -26,26 +21,9 @@ exports.loginUser = async (req, res) => {
       return res.status(401).json({ error: 'Credenciales inválidas' });
     }
 
-    
-    const token = jwt.sign(
-      { userId: user.id },
-      process.env.JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-
-    res.status(200).json({ 
-      message: 'Login exitoso',
-      user: {
-        id: user.id,
-        email: user.email,
-      },
-      token
-
-
     return res.status(200).json({
       message: 'Login exitoso',
       user: { id: user.id, username: user.username }
-
     });
 
   } catch (error) {
