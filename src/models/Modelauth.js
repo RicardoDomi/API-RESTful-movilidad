@@ -1,6 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/Authdatabase');
 
+
 const User = sequelize.define(
     'User',
     {
@@ -35,3 +36,16 @@ const User = sequelize.define(
 );
 
 module.exports = User;
+
+const Modelauth = sequelize.define(
+  'auth',{
+    id:{type: DataTypes.INTEGER, primaryKey:true, autoIncrement:true },
+    username:{type: DataTypes.STRING, allowNull:false},
+    password:{type: DataTypes.STRING, allowNull:false}
+  },{
+    timestamps:false
+  }
+);
+
+module.exports = Modelauth;
+
