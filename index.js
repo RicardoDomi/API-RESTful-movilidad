@@ -12,6 +12,9 @@ const authRoutes = require("./src/routes/auth");
 const swaggerDocument = require(path.join(__dirname, "src", "docs", "openapi.json"));
 dotenv.config();
 
+
+const path = require('path')
+
 const logger = pino({
   level: process.env.LOG_LEVEL || "info",
   transport: process.env.NODE_ENV !== "production"
@@ -22,7 +25,14 @@ const logger = pino({
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Seguridad + logs
+
+app.use(pinoHttp());
+app.use(express.json());
+
+app.use(helmet({contentSecurityPolicy: false, crossOriginResourcePolicy: {policy: 'cross-origin'},}));
+app.use(express.static(path.join(__dirname, 'public')));
+app.use('/auth', authRoutes);
+
 app.use(helmet());
 app.use(pinoHttp({ logger }));
 app.use(morgan("dev"));
@@ -35,6 +45,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 
 app.use("/auth", authRoutes);
+
 app.use("/routes", journeysRoutes);
 
 app.get("/", (_req, res) => {

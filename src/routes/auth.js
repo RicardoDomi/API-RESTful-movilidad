@@ -8,6 +8,10 @@ const rules = [
   body("password").notEmpty().withMessage("Contraseña requerida").isLength({ min: 8 }).withMessage("Minimo 8 caracteres"),
 ];
 
+
+router.post("/",rules, authController.loginUser);
+
 router.post("/auth", rules, authController.loginUser);
+
 
 module.exports = router;

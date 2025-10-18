@@ -4,7 +4,11 @@ const {getJourneyByIdService} = require("../service/getJourneysByIDService");
 
 exports.createJourney = async (req, res) => {
          try {
-        const createdJourney = await newJourneyService.createJourney(req.body);
+        const journeyData = {
+            ...req.body,
+            userId: req.userId
+        };
+        const createdJourney = await newJourneyService.createJourney(journeyData);
         res.status(201).json({
             message: "Viaje creado exitosamente",
             journey: createdJourney
@@ -15,7 +19,7 @@ exports.createJourney = async (req, res) => {
 }
 exports.getAllJourneys = async (req, res) => {
     try{
-        const journeys = await getAllJourneysService.getAllJourneys();
+        const journeys = await getAllJourneysService.getAllJourneys(req.userId);
         res.status(200).json({ 
             message: "Viajes obtenidos exitosamente",
             journeys: journeys
@@ -28,7 +32,7 @@ exports.getAllJourneys = async (req, res) => {
 exports.getJourneyById = async (req, res) => {
   try {
     const { id } = req.params;
-    const journey = await getJourneyByIdService(id);
+    const journey = await getJourneyByIdService(id, req.userId);
     res.status(200).json({
       message: "Viaje obtenido exitosamente",
       journey: journey
