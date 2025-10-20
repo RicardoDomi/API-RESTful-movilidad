@@ -1,33 +1,56 @@
-const { validationResult } = require('express-validator');
+const {validationResult} = require('express-validator');
 const authService = require('../service/authService');
+const jwt = require('jsonwebtoken');
+const singupService = require('../service/singupService');
 
 exports.loginUser = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    // devuelve mensajes de validación al front
     return res.status(400).json({ errors: errors.array() });
   }
 
   try {
-    const { username, password } = req.body;
-
-    const user = await authService.getUserByUsername(username);
+    const { email, password } = req.body;
+    
+    const user = await authService.getUserByEmail(email);
+    
     if (!user) {
       return res.status(401).json({ error: 'Credenciales inválidas' });
     }
-
-    // En esta demo no hay hashing; compara en texto plano
+  
     if (user.password !== password) {
       return res.status(401).json({ error: 'Credenciales inválidas' });
     }
+    
+    const token = jwt.sign(
+      { userId: user.id },
+      process.env.JWT_SECRET,
+      { expiresIn: '24h' }
+    );
 
-    return res.status(200).json({
+    res.status(200).json({ 
       message: 'Login exitoso',
-      user: { id: user.id, username: user.username }
+      user: {
+        id: user.id,
+        email: user.email,
+      },
+      token
     });
-
+    
   } catch (error) {
     console.error('Error en login:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
+
+exports.signupUser = async (req, res) => {
+        const userData = {
+            ...req.body
+        };
+
+        const signupUser = await singupService.newUser(userData); 
+        res.status(201).json({
+            message: "Usuario registrado exitosamente",
+            user: signupUser
+        });
+}

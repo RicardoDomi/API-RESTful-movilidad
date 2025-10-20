@@ -4,14 +4,14 @@ const authController = require("../controller/authController");
 const { body } = require("express-validator");
 
 const rules = [
-  body("username").trim().notEmpty().withMessage("Usuario requerido"),
+  body("email")
+    .trim()
+    .isEmail()
+    .normalizeEmail()
+    .withMessage("Email inválido"),
   body("password").notEmpty().withMessage("Contraseña requerida").isLength({ min: 8 }).withMessage("Minimo 8 caracteres"),
 ];
 
-
 router.post("/",rules, authController.loginUser);
-
-router.post("/auth", rules, authController.loginUser);
-
-
+router.post("/sing-up",authController.signupUser)
 module.exports = router;
