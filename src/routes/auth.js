@@ -1,17 +1,10 @@
 const express = require("express");
+const { register, login } = require("../controller/authController");
+const { loginLimiter } = require("../middleware/rateLimit");
+
 const router = express.Router();
-const authController = require("../controller/authController");
-const { body } = require("express-validator");
 
-const rules = [
-  body("username").trim().notEmpty().withMessage("Usuario requerido"),
-  body("password").notEmpty().withMessage("Contraseña requerida").isLength({ min: 8 }).withMessage("Minimo 8 caracteres"),
-];
-
-
-router.post("/",rules, authController.loginUser);
-
-router.post("/auth", rules, authController.loginUser);
-
+router.post("/register", register);
+router.post("/login", loginLimiter, login); 
 
 module.exports = router;

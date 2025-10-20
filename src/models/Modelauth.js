@@ -1,51 +1,31 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/Authdatabase');
+const { DataTypes } = require("sequelize");
+const sequelize = require("../config/Authdatabase");
+const { hashPassword, comparePassword } = require("../utils/password");
 
-
-const User = sequelize.define(
-    'User',
-    {
-        id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-            autoIncrement: true
-        },
-        username: {
-            type: DataTypes.STRING,
-            allowNull: false,
-            unique: true
-        },
-        name: {
-            type: DataTypes.STRING(100),
-            allowNull: false
-        },
-        gmail: {
-            type: DataTypes.STRING(100),
-            allowNull: false,
-            unique: true
-        },
-        password: {
-            type: DataTypes.STRING,
-            allowNull: false
-        }
+const User = sequelize.define("User", {
+  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  username: { type: DataTypes.STRING, allowNull: false, unique: true },
+  email: { type: DataTypes.STRING, allowNull: true, unique: true },
+  password: { type: DataTypes.STRING, allowNull: false }
+}, {
+  tableName: "users",
+  timestamps: true,
+  hooks: {
+  
+    async beforeCreate(user) {
+      if (user.password) user.password = await hashPassword(user.password);
     },
-    {
-        tableName: 'users',
-        timestamps: false
+
+    async beforeUpdate(user) {
+      if (user.changed("password")) {
+        user.password = await hashPassword(user.password);
+      }
     }
-);
+  }
+});
+
+User.prototype.validPassword = function (plain) {
+  return comparePassword(plain, this.password);
+};
 
 module.exports = User;
-
-const Modelauth = sequelize.define(
-  'auth',{
-    id:{type: DataTypes.INTEGER, primaryKey:true, autoIncrement:true },
-    username:{type: DataTypes.STRING, allowNull:false},
-    password:{type: DataTypes.STRING, allowNull:false}
-  },{
-    timestamps:false
-  }
-);
-
-module.exports = Modelauth;
-
