@@ -1,6 +1,8 @@
 const newJourneyService = require("../service/newJourneyService");
 const getAllJourneysService = require("../service/getAllJourneysService");
 const {getJourneyByIdService} = require("../service/getJourneysByIDService");
+const status = require('http-status')
+
 
 exports.createJourney = async (req, res) => {
          try {
@@ -14,7 +16,7 @@ exports.createJourney = async (req, res) => {
             journey: createdJourney
         });
     } catch (error) {
-        res.status(500).json({ error: "Error al crear el viaje" });
+        return res.send(status.INTERNAL_SERVER_ERROR);
     }
 }
 exports.getAllJourneys = async (req, res) => {

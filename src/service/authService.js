@@ -1,5 +1,5 @@
 const Modelauth = require('../models/Modelauth');
-
+const status = require('http-status')
 
 exports.getUserByEmail = async (email) => {
     try {
@@ -7,7 +7,7 @@ exports.getUserByEmail = async (email) => {
             where: { gmail: email } 
         });
     } catch (error) {
-        console.error('Error en login:', error);
+        console.error('Error en login:');
         throw error;
     }
 };
