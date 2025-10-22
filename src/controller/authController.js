@@ -1,57 +1,102 @@
-const jwt = require("jsonwebtoken");
-const User = require("../models/Modelauth");
+const {validationResult} = require('express-validator');
+const authService = require('../service/authService');
+const jwt = require('jsonwebtoken');
+const singupService = require('../service/singupService');
 
-// Reusamos el logger creado en index.js vía req.log (de pino-http)
+// Función de validación de contraseña fuerte
 function isStrongPassword(pwd) {
   return typeof pwd === "string" && pwd.length >= 8;
 }
 
-async function register(req, res) {
-  try {
-    const { username, email, password } = req.body;
-
-    if (!username || !password)
-      return res.status(400).json({ message: "username y password son obligatorios" });
-
-    if (!isStrongPassword(password))
-      return res.status(400).json({ message: "La contraseña debe tener al menos 8 caracteres" });
-
-    const exists = await User.findOne({ where: { username } });
-    if (exists) return res.status(409).json({ message: "El usuario ya existe" });
-
-    const user = await User.create({ username, email, password });
-
-    // pino-http inyecta req.log
-    req.log.info({ userId: user.id, username }, "Usuario registrado");
-    return res.status(201).json({ id: user.id, username: user.username, email: user.email });
-  } catch (error) {
-    req.log.error({ err: error }, "Error en register");
-    return res.status(500).json({ message: "Error en el servidor" });
+exports.loginUser = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
   }
-}
 
-async function login(req, res) {
   try {
-    const { username, password } = req.body;
-
-    const user = await User.findOne({ where: { username } });
-    if (!user) return res.status(400).json({ message: "Usuario o contraseña inválidos" });
-
-    const ok = await user.validPassword(password);
-    if (!ok) return res.status(400).json({ message: "Usuario o contraseña inválidos" });
-
+    const { email, password } = req.body;
+    
+    const user = await authService.getUserByEmail(email);
+    
+    if (!user) {
+      return res.status(401).json({ error: 'Credenciales inválidas' });
+    }
+  
+    // Validar contraseña (usa el método del modelo si existe, sino comparación directa)
+    let passwordValid = false;
+    if (typeof user.validPassword === 'function') {
+      passwordValid = await user.validPassword(password);
+    } else {
+      passwordValid = user.password === password;
+    }
+    
+    if (!passwordValid) {
+      return res.status(401).json({ error: 'Credenciales inválidas' });
+    }
+    
     const token = jwt.sign(
-      { sub: user.id, username: user.username },
+      { userId: user.id },
       process.env.JWT_SECRET,
-      { expiresIn: "1d" }
+      { expiresIn: '24h' }
     );
 
-    req.log.debug({ userId: user.id, username }, "Login exitoso");
-    return res.json({ token, user: { id: user.id, username: user.username, email: user.email } });
-  } catch (error) {
-    req.log.error({ err: error }, "Error en login");
-    return res.status(500).json({ message: "Error en el servidor" });
-  }
-}
+    // Log con Pino si está disponible
+    if (req.log) {
+      req.log.debug({ userId: user.id, email: user.email }, "Login exitoso");
+    }
 
-module.exports = { register, login };
+    res.status(200).json({ 
+      message: 'Login exitoso',
+      user: {
+        id: user.id,
+        email: user.email,
+      },
+      token
+    });
+    
+  } catch (error) {
+    // Log con Pino si está disponible, sino console.error
+    if (req.log) {
+      req.log.error({ err: error }, "Error en login");
+    } else {
+      console.error('Error en login:', error);
+    }
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+exports.signupUser = async (req, res) => {
+  try {
+    const { password } = req.body;
+    
+    // Validar contraseña fuerte
+    if (!isStrongPassword(password)) {
+      return res.status(400).json({ error: "La contraseña debe tener al menos 8 caracteres" });
+    }
+
+    const userData = {
+      ...req.body
+    };
+
+    const signupUser = await singupService.newUser(userData);
+    
+    // Log con Pino si está disponible
+    if (req.log) {
+      req.log.info({ userId: signupUser.id }, "Usuario registrado");
+    }
+    
+    res.status(201).json({
+      message: "Usuario registrado exitosamente",
+      user: signupUser
+    });
+  } catch (error) {
+    // Log con Pino si está disponible, sino console.error
+    if (req.log) {
+      req.log.error({ err: error }, "Error en registro");
+    } else {
+      console.error('Error en registro:', error);
+    }
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};

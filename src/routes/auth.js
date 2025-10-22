@@ -1,10 +1,18 @@
 const express = require("express");
-const { register, login } = require("../controller/authController");
+const router = express.Router();
+const authController = require("../controller/authController");
+const { body } = require("express-validator");
 const { loginLimiter } = require("../middleware/rateLimit");
 
-const router = express.Router();
+const rules = [
+  body("email")
+    .trim()
+    .isEmail()
+    .normalizeEmail()
+    .withMessage("Email inválido"),
+  body("password").notEmpty().withMessage("Contraseña requerida").isLength({ min: 8 }).withMessage("Minimo 8 caracteres"),
+];
 
-router.post("/register", register);
-router.post("/login", loginLimiter, login); 
-
+router.post("/",rules,loginLimiter,authController.loginUser);
+router.post("/sing-up",authController.signupUser)
 module.exports = router;
