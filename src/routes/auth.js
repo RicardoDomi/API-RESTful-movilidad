@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const authController = require("../controller/authController");
 const { body } = require("express-validator");
+const { loginLimiter } = require("../middleware/rateLimit");
 
 const rules = [
   body("email")
@@ -12,6 +13,6 @@ const rules = [
   body("password").notEmpty().withMessage("Contraseña requerida").isLength({ min: 8 }).withMessage("Minimo 8 caracteres"),
 ];
 
-router.post("/",rules, authController.loginUser);
+router.post("/",rules,loginLimiter,authController.loginUser);
 router.post("/sing-up",authController.signupUser)
 module.exports = router;

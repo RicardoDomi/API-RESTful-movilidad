@@ -6,7 +6,6 @@ const pinoHttp = require("pino-http");
 const morgan = require("morgan");
 const path = require("path");
 const swaggerUi = require('swagger-ui-express');
-const swaggerSpec = require('./src/docs/openApi.json');
 const journeysRoutes = require("./src/routes/journey");
 const authRoutes = require("./src/routes/auth");
 const swaggerDocument = require(path.join(__dirname, "src", "docs", "openapi.json"));
@@ -22,36 +21,24 @@ const logger = pino({
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(pinoHttp());
 app.use(express.json());
-
-app.use(helmet({contentSecurityPolicy: false, crossOriginResourcePolicy: {policy: 'cross-origin'},}));
+app.use(helmet({ contentSecurityPolicy: false, crossOriginResourcePolicy: { policy: 'cross-origin' }, }));
 app.use(express.static(path.join(__dirname, 'public')));
-
-app.use(helmet());
 app.use(pinoHttp({ logger }));
 app.use(morgan("dev"));
-
-app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-
 app.use(express.static(path.join(__dirname, "public")));
-
 app.use("/auth", authRoutes);
-
 app.use("/routes", journeysRoutes);
-
 app.get("/", (_req, res) => {
   res.send("API RESTful Movilidad funcionando");
 });
-// app.get("/login", (_req, res) =>
-//   res.sendFile(path.join(__dirname, "public", "login.html"))
-// );
-
-// app.get("/dashboard", (_req, res) =>
-//   res.sendFile(path.join(__dirname, "public", "dashboard.html"))
-// );
+app.get("/login", (_req, res) =>
+  res.sendFile(path.join(__dirname, "public", "login.html"))
+);
+app.get("/dashboard", (_req, res) =>
+  res.sendFile(path.join(__dirname, "public", "dashboard.html")));
 
 // const Modelauth = require("./src/models/Modelauth");
 // const sequelize = require("./src/config/Authdatabase");

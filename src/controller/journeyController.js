@@ -1,6 +1,7 @@
 const newJourneyService = require("../service/newJourneyService");
 const getAllJourneysService = require("../service/getAllJourneysService");
 const {getJourneyByIdService} = require("../service/getJourneysByIDService");
+const status = require('http-status')
 
 exports.createJourney = async (req, res) => {
         const journeyData = {
