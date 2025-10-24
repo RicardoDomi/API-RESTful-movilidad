@@ -68,35 +68,33 @@ exports.loginUser = async (req, res) => {
 
 exports.signupUser = async (req, res) => {
   try {
-    const { password } = req.body;
-    
-    // Validar contraseña fuerte
-    if (!isStrongPassword(password)) {
-      return res.status(400).json({ error: "La contraseña debe tener al menos 8 caracteres" });
+    const gmail = req.body.gmail || req.body.email;
+    const { password, name, username } = req.body;
+
+    if (!gmail || !password || !name || !username) {
+      return res.status(400).json({ message: "Faltan campos obligatorios" });
+    }
+    if (typeof password !== "string" || password.length < 8) {
+      return res.status(400).json({ message: "La contraseña debe tener al menos 8 caracteres" });
     }
 
-    const userData = {
-      ...req.body
-    };
+    const user = await singupService.newUser({ gmail, password, name, username });
 
-    const signupUser = await singupService.newUser(userData);
-    
-    // Log con Pino si está disponible
-    if (req.log) {
-      req.log.info({ userId: signupUser.id }, "Usuario registrado");
-    }
-    
-    res.status(201).json({
+    return res.status(201).json({
       message: "Usuario registrado exitosamente",
-      user: signupUser
+      user
     });
+
   } catch (error) {
-    // Log con Pino si está disponible, sino console.error
-    if (req.log) {
-      req.log.error({ err: error }, "Error en registro");
-    } else {
-      console.error('Error en registro:', error);
+    // Mapeo fino de errores
+    if (error?.name === 'SequelizeUniqueConstraintError') {
+      return res.status(409).json({ message: "Usuario ya registrado" });
     }
-    res.status(500).json({ error: 'Internal Server Error' });
+    if (error?.name === 'SequelizeValidationError') {
+      return res.status(400).json({ message: error.errors?.[0]?.message || "Datos inválidos" });
+    }
+    // Log y 500 por defecto
+    req.log ? req.log.error({ err: error }, "Error en signup") : console.error(error);
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 };
