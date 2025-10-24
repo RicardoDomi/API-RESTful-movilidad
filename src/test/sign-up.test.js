@@ -2,7 +2,7 @@ const { describe, expect, it } = require("@jest/globals");
 const request = require("supertest");
 const index = require("../../index");
 const { faker } = require('@faker-js/faker');
-const { sequelize } = require("../../src/config/Authdatabase");
+const { sequelize } = require("../config/Authdatabase");
 require("dotenv").config();
 const unique = Date.now();
 
