@@ -14,5 +14,5 @@ const rules = [
 ];
 
 router.post("/",rules,loginLimiter,authController.loginUser);
-router.post("/sing-up",authController.signupUser)
+router.post("/signup",authController.signupUser)
 module.exports = router;

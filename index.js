@@ -64,3 +64,4 @@ app.get("/dashboard", (_req, res) =>
 app.listen(PORT, () => {
   logger.info(`Servidor escuchando en el puerto ${PORT}`);
 });
+module.exports = app;
