@@ -23,6 +23,33 @@ router.param("id", (req, res, next, val) => {
   next();
 });
 
+/**
+ * @swagger
+ * /history/{userId}:
+ *   get:
+ *     tags: [History]
+ *     summary: Obtener historial de rutas de un usuario
+ *     parameters:
+ *       - $ref: '#/components/parameters/UserIdParam'
+ *     responses:
+ *       200:
+ *         description: Lista de rutas del usuario
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message: { type: string, example: "Historial obtenido correctamente" }
+ *                 history:
+ *                   type: array
+ *                   items: { $ref: '#/components/schemas/RouteHistory' }
+ *       400:
+ *         description: Parámetros inválidos
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       404:
+ *         description: Sin registros
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ */
 
 router.get(
   "/:userId",
@@ -30,6 +57,37 @@ router.get(
   controller.getUserHistory
 );
 
+
+/**
+ * @swagger
+ * /history/{userId}:
+ *   post:
+ *     tags: [History]
+ *     summary: Crear un nuevo registro de historial de ruta
+ *     parameters:
+ *       - $ref: '#/components/parameters/UserIdParam'
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: { $ref: '#/components/schemas/CreateRouteHistoryRequest' }
+ *     responses:
+ *       201:
+ *         description: Ruta creada correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message: { type: string, example: "Ruta creada correctamente" }
+ *                 route: { $ref: '#/components/schemas/RouteHistory' }
+ *       400:
+ *         description: Body inválido
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       500:
+ *         description: Error interno
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ */
 
 router.post(
   "/:userId",
@@ -44,7 +102,31 @@ router.post(
   controller.createRouteHistory
 );
 
-
+/**
+ * @swagger
+ * /history/{userId}/{id}:
+ *   delete:
+ *     tags: [History]
+ *     summary: Eliminar un registro de historial
+ *     parameters:
+ *       - $ref: '#/components/parameters/UserIdParam'
+ *       - $ref: '#/components/parameters/HistoryIdParam'
+ *     responses:
+ *       200:
+ *         description: Eliminado correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message: { type: string, example: "Ruta eliminada correctamente" }
+ *       404:
+ *         description: No encontrado
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ *       400:
+ *         description: Parámetros inválidos
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+ */
 router.delete(
   "/:userId/:id",
   [param("userId").isInt({ min: 1 }), param("id").isInt({ min: 1 })],
