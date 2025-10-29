@@ -6,7 +6,7 @@ const status = require('http-status')
 exports.createJourney = async (req, res) => {
         const journeyData = {
             ...req.body,
-            userId: req.userId
+            user_id: req.userId
         };
         const createdJourney = await newJourneyService.createJourney(journeyData);
         res.status(201).json({
