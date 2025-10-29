@@ -9,6 +9,7 @@ const swaggerUi = require('swagger-ui-express');
 const journeysRoutes = require("./src/routes/journey");
 const authRoutes = require("./src/routes/auth");
 const swaggerDocument = require(path.join(__dirname, "src", "docs", "openapi.json"));
+const errorHandler = require("./src/middleware/errorHandler");
 dotenv.config();
 
 const logger = pino({
@@ -28,7 +29,6 @@ app.use(pinoHttp({ logger }));
 app.use(morgan("dev"));
 app.use(express.urlencoded({ extended: true }));
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-app.use(express.static(path.join(__dirname, "public")));
 app.use("/auth", authRoutes);
 app.use("/routes", journeysRoutes);
 app.get("/", (_req, res) => {
@@ -61,6 +61,8 @@ app.get("/dashboard", (_req, res) =>
 //   }
 // }
 // seedDemoUser();
+
+app.use(errorHandler);
 app.listen(PORT, () => {
   logger.info(`Servidor escuchando en el puerto ${PORT}`);
 });
