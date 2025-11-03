@@ -11,7 +11,7 @@ const authRoutes = require("./src/routes/auth");
 
 const usersRoutes = require("./src/routes/users");
 
-const swaggerDocument = require(path.join(__dirname, "src", "docs", "openapi.json"));
+const swaggerDocument = require(path.join(__dirname, "src", "docs", "openApi.json"));
 const errorHandler = require("./src/middleware/errorHandler");
 dotenv.config();
 
