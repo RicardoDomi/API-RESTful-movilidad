@@ -8,6 +8,9 @@ const path = require("path");
 const swaggerUi = require('swagger-ui-express');
 const journeysRoutes = require("./src/routes/journey");
 const authRoutes = require("./src/routes/auth");
+
+const usersRoutes = require("./src/routes/users");
+
 const swaggerDocument = require(path.join(__dirname, "src", "docs", "openapi.json"));
 const errorHandler = require("./src/middleware/errorHandler");
 dotenv.config();
@@ -23,22 +26,35 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
-app.use(helmet({ contentSecurityPolicy: false, crossOriginResourcePolicy: { policy: 'cross-origin' }, }));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  })
+);
+app.use(express.static(path.join(__dirname, "public")));
 app.use(pinoHttp({ logger }));
 app.use(morgan("dev"));
 app.use(express.urlencoded({ extended: true }));
+
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use("/auth", authRoutes);
 app.use("/routes", journeysRoutes);
+
+
+app.use("/users", usersRoutes);
+
 app.get("/", (_req, res) => {
   res.send("API RESTful Movilidad funcionando");
 });
+
 app.get("/login", (_req, res) =>
   res.sendFile(path.join(__dirname, "public", "login.html"))
 );
+
 app.get("/dashboard", (_req, res) =>
-  res.sendFile(path.join(__dirname, "public", "dashboard.html")));
+  res.sendFile(path.join(__dirname, "public", "dashboard.html"))
+);
 
 // const Modelauth = require("./src/models/Modelauth");
 // const sequelize = require("./src/config/Authdatabase");
@@ -66,4 +82,5 @@ app.use(errorHandler);
 app.listen(PORT, () => {
   logger.info(`Servidor escuchando en el puerto ${PORT}`);
 });
+
 module.exports = app;

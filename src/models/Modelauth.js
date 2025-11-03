@@ -27,6 +27,12 @@ const User = sequelize.define(
     password: {
       type: DataTypes.STRING,
       allowNull: false
+    },
+   
+    role: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: "user"
     }
   },
   {
@@ -50,5 +56,5 @@ const User = sequelize.define(
 User.prototype.validPassword = async function (plainPassword) {
   return await comparePassword(plainPassword, this.password);
 };
-module.exports = User;
 
+module.exports = User;

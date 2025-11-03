@@ -13,7 +13,8 @@
   ],
   "tags": [
     { "name": "Auth", "description": "Endpoints de autenticación" },
-    { "name": "Journeys", "description": "Gestión de recorridos" }
+    { "name": "Journeys", "description": "Gestión de recorridos" },
+    { "name": "Users", "description": "Gestión de usuarios del sistema" }
   ],
   "components": {
     "securitySchemes": {
@@ -30,8 +31,10 @@
           "id": { "type": "integer", "example": 1 },
           "username": { "type": "string", "example": "juanperez" },
           "name": { "type": "string", "example": "Juan Pérez" },
-          "gmail": { "type": "string", "example": "juan@example.com" }
-        }
+          "gmail": { "type": "string", "example": "juan@example.com" },
+          "phone": { "type": "string", "example": "555-1234" },
+          "role": { "type": "string", "example": "user" }
+          }
       },
       "LoginRequest": {
         "type": "object",
@@ -56,7 +59,51 @@
           "ok": { "type": "boolean", "example": false },
           "msg": { "type": "string", "example": "Credenciales inválidas" }
         }
+      },
+      "BasicMessage": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string", "example": "Operación exitosa" }
+        }
+      },
+      "UpdateUserResponse": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string", "example": "Usuario actualizado" },
+          "data": { "$ref": "#/components/schemas/User" }
+        }
+      },
+      "ChangePasswordRequest": {
+        "type": "object",
+        "required": ["currentPassword", "newPassword"],
+        "properties": {
+          "currentPassword": { "type": "string", "example": "anterior123" },
+          "newPassword": { "type": "string", "example": "NuevaSegura!2025" }
+        }
+      },
+      "ChangeRoleRequest": {
+        "type": "object",
+        "required": ["role"],
+        "properties": {
+          "role": { "type": "string", "example": "admin" }
+        }
+      },
+      "UpdateUserRequest": {
+        "type": "object",
+        "properties": {
+          "username": { "type": "string", "example": "juanp" },
+          "gmail": { "type": "string", "example": "juan@example.com" },
+          "name": { "type": "string", "example": "Juan Pérez" },
+          "phone": { "type": "string", "example": "555-1234" }
+        }
       }
+    },
+    "responses": {
+      "BadRequest": { "description": "Petición inválida" },
+      "Unauthorized": { "description": "No autorizado" },
+      "NotFound": { "description": "Recurso no encontrado" },
+      "Conflict": { "description": "Conflicto o duplicado" },
+      "ServerError": { "description": "Error interno del servidor" }
     }
   },
   "paths": {
@@ -90,16 +137,14 @@
                   "properties": {
                     "ok": { "type": "boolean", "example": true },
                     "token": { "type": "string", "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." },
-                    "user": {
-                      "$ref": "#/components/schemas/User"
-                    }
+                    "user": { "$ref": "#/components/schemas/User" }
                   }
                 }
               }
             }
           },
-          "400": { "description": "Faltan credenciales o datos inválidos" },
-          "401": { "description": "Credenciales incorrectas" },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
           "422": { "description": "Error de validación (rules)" }
         }
       }
@@ -111,22 +156,18 @@
         "requestBody": {
           "required": true,
           "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/LoginRequest" }
-            }
+            "application/json": { "schema": { "$ref": "#/components/schemas/LoginRequest" } }
           }
         },
         "responses": {
           "200": {
             "description": "Inicio de sesión correcto",
             "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/LoginResponse" }
-              }
+              "application/json": { "schema": { "$ref": "#/components/schemas/LoginResponse" } }
             }
           },
-          "400": { "description": "Faltan credenciales" },
-          "401": { "description": "Credenciales inválidas" }
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
         }
       }
     },
@@ -150,10 +191,11 @@
               }
             }
           },
-          "401": { "description": "No autorizado" }
+          "401": { "$ref": "#/components/responses/Unauthorized" }
         }
       }
     },
+
     "/routes/new_journey": {
       "post": {
         "tags": ["Journeys"],
@@ -193,8 +235,8 @@
               }
             }
           },
-          "400": { "description": "Datos inválidos" },
-          "401": { "description": "Token no válido o faltante" }
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
         }
       }
     },
@@ -226,7 +268,7 @@
               }
             }
           },
-          "401": { "description": "Token no válido o faltante" }
+          "401": { "$ref": "#/components/responses/Unauthorized" }
         }
       }
     },
@@ -263,8 +305,88 @@
               }
             }
           },
-          "404": { "description": "Recorrido no encontrado" },
-          "401": { "description": "Token no válido o faltante" }
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+
+    "/users/{id}": {
+      "put": {
+        "tags": ["Users"],
+        "summary": "Actualizar usuario",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" }, "description": "ID del usuario a actualizar" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/UpdateUserRequest" } }
+          }
+        },
+        "responses": {
+          "200": { "description": "Usuario actualizado correctamente", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UpdateUserResponse" } } } },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      },
+      "delete": {
+        "tags": ["Users"],
+        "summary": "Eliminar usuario",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" }, "description": "ID del usuario a eliminar" }
+        ],
+        "responses": {
+          "200": { "description": "Usuario eliminado correctamente", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/BasicMessage" } } } },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/users/{id}/password": {
+      "patch": {
+        "tags": ["Users"],
+        "summary": "Cambiar contraseña",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/ChangePasswordRequest" } }
+          }
+        },
+        "responses": {
+          "200": { "description": "Contraseña actualizada correctamente", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/BasicMessage" } } } },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/users/{id}/role": {
+      "patch": {
+        "tags": ["Users"],
+        "summary": "Cambiar rol de usuario",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/ChangeRoleRequest" } }
+          }
+        },
+        "responses": {
+          "200": { "description": "Rol actualizado correctamente", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UpdateUserResponse" } } } },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/ServerError" }
         }
       }
     }
