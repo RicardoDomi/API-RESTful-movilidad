@@ -16,7 +16,7 @@ const testRoute = {
   mode: "car",
 };
 
-const API_KEY = process.env.HISTORY_APIKEY || "908jioc"; // o la que tengas
+const API_KEY = process.env.HISTORY_APIKEY || "908jioc"; 
 
 describe(" HISTORY ENDPOINTS", () => {
   beforeAll(async () => {
@@ -24,7 +24,7 @@ describe(" HISTORY ENDPOINTS", () => {
   });
 
   // POST /history/:userId
-  it("🟢 Should create a new route in the history", async () => {
+  it(" Should create a new route in the history", async () => {
     const res = await request(app)
       .post(`/history/${testUserId}`)
       .set("x-api-key", API_KEY)
@@ -38,7 +38,7 @@ describe(" HISTORY ENDPOINTS", () => {
   });
 
   // GET /history/:userId
-  it("🟢 Should get the route history for a user", async () => {
+  it(" Should get the route history for a user", async () => {
     const res = await request(app)
       .get(`/history/${testUserId}`)
       .set("x-api-key", API_KEY);
@@ -51,7 +51,7 @@ describe(" HISTORY ENDPOINTS", () => {
   });
 
   // DELETE /history/:userId/:id
-  it("🟢 Should soft-delete a specific route", async () => {
+  it(" Should soft-delete a specific route", async () => {
     const res = await request(app)
       .delete(`/history/${testUserId}/${createdId}`)
       .set("x-api-key", API_KEY);
@@ -61,7 +61,7 @@ describe(" HISTORY ENDPOINTS", () => {
   });
 
   // GET /history/:userId
-  it("🟢 Should not include deleted routes", async () => {
+  it(" Should not include deleted routes", async () => {
     const res = await request(app)
       .get(`/history/${testUserId}`)
       .set("x-api-key", API_KEY);
