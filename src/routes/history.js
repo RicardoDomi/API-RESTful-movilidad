@@ -116,7 +116,7 @@ router.put(
     body("metadata").optional().isObject(),
   ],
     // ← OBLIGATORIO
-  controller.updateRouteHistory
+  controller.updateRouteHistory  
 );
 
 /**

@@ -72,7 +72,7 @@ exports.deleteRouteHistory = async (req, res, next) => {
 };
 
 
-// PUT /history/:userId/:id
+
 exports.updateRouteHistory = async (req, res, next) => {
   // SOLO si la ruta tiene validators
   const errors = validationResult(req);

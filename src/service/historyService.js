@@ -76,3 +76,4 @@ exports.updateHistory = async (userId,id,data) => {
   await history.update(updates);
   return history;
 };
+ 
