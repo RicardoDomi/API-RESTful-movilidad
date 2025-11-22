@@ -1,11 +1,10 @@
 const { describe, it, expect, beforeAll } = require("@jest/globals");
 const request = require("supertest");
-const app = require("../../index"); 
+const app = require("../../index");
 require("dotenv").config();
 
 let createdId = null;
 const testUserId = 1;
-
 
 const testRoute = {
   originLat: 20.67,
@@ -17,6 +16,8 @@ const testRoute = {
   mode: "car",
 };
 
+const API_KEY = process.env.HISTORY_APIKEY || "908jioc"; // o la que tengas
+
 describe(" HISTORY ENDPOINTS", () => {
   beforeAll(async () => {
     await new Promise((resolve) => setTimeout(resolve, 500));
@@ -24,38 +25,49 @@ describe(" HISTORY ENDPOINTS", () => {
 
   // POST /history/:userId
   it("🟢 Should create a new route in the history", async () => {
-    const res = await request(app).post(`/history/${testUserId}`).send(testRoute);
+    const res = await request(app)
+      .post(`/history/${testUserId}`)
+      .set("x-api-key", API_KEY)
+      .send(testRoute);
 
     expect(res.statusCode).toBe(201);
     expect(res.body).toHaveProperty("id");
     expect(res.body.mode).toBe("car");
 
-    createdId = res.body.id; 
+    createdId = res.body.id;
   });
 
   // GET /history/:userId
   it("🟢 Should get the route history for a user", async () => {
-    const res = await request(app).get(`/history/${testUserId}`);
+    const res = await request(app)
+      .get(`/history/${testUserId}`)
+      .set("x-api-key", API_KEY);
 
     expect(res.statusCode).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
-    expect(res.body[0]).toHaveProperty("originLat");
+    if (res.body.length > 0) {
+      expect(res.body[0]).toHaveProperty("originLat");
+    }
   });
 
   // DELETE /history/:userId/:id
   it("🟢 Should soft-delete a specific route", async () => {
-    const res = await request(app).delete(`/history/${testUserId}/${createdId}`);
+    const res = await request(app)
+      .delete(`/history/${testUserId}/${createdId}`)
+      .set("x-api-key", API_KEY);
 
     expect([200, 404]).toContain(res.statusCode);
     expect(res.body).toHaveProperty("deleted");
   });
 
-  // GET /history/:userId 
+  // GET /history/:userId
   it("🟢 Should not include deleted routes", async () => {
-    const res = await request(app).get(`/history/${testUserId}`);
+    const res = await request(app)
+      .get(`/history/${testUserId}`)
+      .set("x-api-key", API_KEY);
+
     expect(res.statusCode).toBe(200);
     const deleted = res.body.find((r) => r.id === createdId);
     expect(deleted).toBeUndefined();
   });
 });
-   

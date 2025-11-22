@@ -88,5 +88,5 @@ if (require.main === module && process.env.NODE_ENV !== "test") {
 
 
 
-module.exports = { app, start, sequelize };
+module.exports = start;
 

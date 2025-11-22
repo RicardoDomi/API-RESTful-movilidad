@@ -88,6 +88,7 @@ router.get("/:userId",[param("userId").isInt({ min: 1 })],
  */
 
 router.post( "/:userId",[ 
+    appikey,
     param("userId").isInt({ min: 1 }),
     body("originLat").isFloat().withMessage("originLat inválido"),
     body("originLng").isFloat().withMessage("originLng inválido"),
@@ -99,6 +100,7 @@ router.post( "/:userId",[
 
 
 router.put(
+
   "/:userId/:id",
   appikey,   // ← OBLIGATORIO
   [
@@ -146,6 +148,7 @@ router.put(
  */
 router.delete(
  "/:userId/:id",
+ appikey,
   [param("userId").isInt({ min: 1 }), param("id").isInt({ min: 1 })],
   controller.deleteRouteHistory
 );
