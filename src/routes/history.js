@@ -1,6 +1,7 @@
 const { Router } = require("express");
 const { body, param } = require("express-validator");
 const controller = require("../controller/historyController");
+const appikey = require("../middleware/middlewareHistory");
 
 const router = Router();
 
@@ -51,13 +52,10 @@ router.param("id", (req, res, next, val) => {
  *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
  */
 
-router.get(
-  "/:userId",
-  [param("userId").isInt({ min: 1 })],
-  controller.getUserHistory
+router.get("/:userId",[param("userId").isInt({ min: 1 })],
+       appikey,
+ controller.getUserHistory
 );
-
-
 /**
  * @swagger
  * /history/{userId}:
@@ -89,17 +87,36 @@ router.get(
  *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
  */
 
-router.post(
-  "/:userId",
-  [
+router.post( "/:userId",[
     param("userId").isInt({ min: 1 }),
     body("originLat").isFloat().withMessage("originLat inválido"),
     body("originLng").isFloat().withMessage("originLng inválido"),
     body("destinationLat").isFloat().withMessage("destinationLat inválido"),
     body("destinationLng").isFloat().withMessage("destinationLng inválido"),
-
-  ],
+   ],
   controller.createRouteHistory
+);
+
+
+router.put(
+  "/:userId/:id",
+  appikey,   // ← OBLIGATORIO
+  [
+    param("userId").isInt({ min: 1 }).withMessage("userId debe ser un entero positivo"),
+    param("id").isInt({ min: 1 }).withMessage("id debe ser un entero positivo"),
+
+    body("originLat").optional().isFloat(),
+    body("originLng").optional().isFloat(),
+    body("destinationLat").optional().isFloat(),
+    body("destinationLng").optional().isFloat(),
+    body("distanceM").optional().isInt({ min: 0 }),
+    body("durationS").optional().isInt({ min: 0 }),
+    body("mode").optional().isString(),
+    body("usedAt").optional().isISO8601(),
+    body("metadata").optional().isObject(),
+  ],
+    // ← OBLIGATORIO
+  controller.updateRouteHistory
 );
 
 /**
@@ -128,9 +145,12 @@ router.post(
  *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
  */
 router.delete(
-  "/:userId/:id",
+ "/:userId/:id",
   [param("userId").isInt({ min: 1 }), param("id").isInt({ min: 1 })],
   controller.deleteRouteHistory
 );
+
+
+
 
 module.exports = router;

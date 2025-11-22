@@ -1,4 +1,4 @@
-// src/docs/swagger.js
+
 const swaggerJSDoc = require("swagger-jsdoc");
 
 const options = {

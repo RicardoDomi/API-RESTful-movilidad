@@ -5,10 +5,12 @@ const pino = require("pino");
 const pinoHttp = require("pino-http");
 const morgan = require("morgan");
 const helmet = require("helmet");
-
+const swaggerUi = require("swagger-ui-express");
+const swaggerSpec = require("./src/docs/swagger"); 
+const appikey = require("./src/middleware/middlewareHistory")
 dotenv.config();
 
-// Configuración de base de datos y modelos
+
 const sequelize = require("./src/config/Authdatabase");
 require("./src/models/Modelhistory")(sequelize);
 
@@ -37,10 +39,13 @@ app.use(
 );
 app.use(express.static(path.join(__dirname, "public")));
 
-// Rutas principales
+
+
 app.use("/auth", authRoutes);
 app.use("/routes", journeysRoutes);
 app.use("/history", historyRoutes);
+//swagger
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, { explorer: true }));
 
 // Rutas simples
 app.get("/", (_req, res) => res.send("API RESTful Movilidad funcionando"));
@@ -55,7 +60,7 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ error: msg });
 });
 
-// Función que arranca el servidor y sincroniza la DB
+
 async function start() {
   await sequelize.authenticate();
   await sequelize.sync({ alter: true });
@@ -68,7 +73,7 @@ async function start() {
   return server;
 }
 
-// Solo inicia el servidor si se ejecuta directamente con node index.js
+
 if (require.main === module && process.env.NODE_ENV !== "test") {
   start().catch((e) => {
     console.error("[DB] Error:", e.message);
