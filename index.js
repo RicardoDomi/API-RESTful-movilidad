@@ -10,10 +10,13 @@ const journeysRoutes = require("./src/routes/journey");
 const authRoutes = require("./src/routes/auth");
 const historyRoutes = require("./src/routes/history");
 const usersRoutes = require("./src/routes/users");
-
+const appikey = require("./src/middleware/middlewareHistory")
 const swaggerDocument = require(path.join(__dirname, "src", "docs", "openapi.json"));
 const errorHandler = require("./src/middleware/errorHandler");
 dotenv.config();
+
+const sequelize = require("./src/config/Authdatabase");
+require("./src/models/Modelhistory")(sequelize);
 
 const logger = pino({
   level: process.env.LOG_LEVEL || "info",
@@ -61,8 +64,29 @@ app.get("/dashboard", (_req, res) =>
 
 app.use(errorHandler);
 
-app.listen(PORT, () => {
-  logger.info(`Servidor escuchando en el puerto ${PORT}`);
+
+async function start() {
+  await sequelize.authenticate();
+  await sequelize.sync({ alter: true });
+  if (process.env.NODE_ENV !== "test")
+    console.log("[DB] Conexión OK y modelos sincronizados");
+
+  const server = app.listen(PORT, () => {
+    logger.info(`Servidor escuchando en el puerto ${PORT}`);
+  });
+  return server;
+}
+if (require.main === module && process.env.NODE_ENV !== "test") {
+  start().catch((e) => {
+  console.error("[DB] Error completo:");
+  console.error(e);  // 👈 Muestra TODO el objeto, no solo message
+  // process.exit(1); // 👈 Coméntalo mientras depuramos
 });
 
-module.exports = app;
+}
+
+
+
+
+module.exports = { app, start, sequelize };
+
