@@ -87,7 +87,7 @@ router.get("/:userId",[param("userId").isInt({ min: 1 })],
  *         content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
  */
 
-router.post( "/:userId",[
+router.post( "/:userId",[ 
     param("userId").isInt({ min: 1 }),
     body("originLat").isFloat().withMessage("originLat inválido"),
     body("originLng").isFloat().withMessage("originLng inválido"),
@@ -116,7 +116,7 @@ router.put(
     body("metadata").optional().isObject(),
   ],
     // ← OBLIGATORIO
-  controller.updateRouteHistory  
+  controller.updateRouteHistory   
 );
 
 /**
