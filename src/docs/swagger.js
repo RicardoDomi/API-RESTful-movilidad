@@ -7,11 +7,11 @@ const options = {
     info: {
       title: "API RESTful Movilidad",
       version: "1.0.0",
-      description: "Documentación de endpoints para historial de rutas.",
+      description: "Documentación de endpoints de historial de recorridos.",
     },
     servers: [
       { url: "http://localhost:3000", description: "Local" },
-      
+       
     ],
     tags: [
       { name: "History", description: "Historial de rutas por usuario" },

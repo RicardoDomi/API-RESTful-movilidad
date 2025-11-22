@@ -1,0 +1,394 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "API RESTful Movilidad",
+    "version": "1.0.0",
+    "description": "Documentación interactiva de la API RESTful Movilidad"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Servidor local"
+    }
+  ],
+  "tags": [
+    { "name": "Auth", "description": "Endpoints de autenticación" },
+    { "name": "Journeys", "description": "Gestión de recorridos" },
+    { "name": "Users", "description": "Gestión de usuarios del sistema" }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "username": { "type": "string", "example": "juanperez" },
+          "name": { "type": "string", "example": "Juan Pérez" },
+          "gmail": { "type": "string", "example": "juan@example.com" },
+          "phone": { "type": "string", "example": "555-1234" },
+          "role": { "type": "string", "example": "user" }
+          }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "gmail": { "type": "string", "example": "juan@example.com" },
+          "username": { "type": "string", "example": "juanperez" },
+          "password": { "type": "string", "example": "123456789" }
+        },
+        "required": ["password"]
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean", "example": true },
+          "token": { "type": "string", "example": "eyJhbGciOi..." },
+          "user": { "$ref": "#/components/schemas/User" }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean", "example": false },
+          "msg": { "type": "string", "example": "Credenciales inválidas" }
+        }
+      },
+      "BasicMessage": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string", "example": "Operación exitosa" }
+        }
+      },
+      "UpdateUserResponse": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string", "example": "Usuario actualizado" },
+          "data": { "$ref": "#/components/schemas/User" }
+        }
+      },
+      "ChangePasswordRequest": {
+        "type": "object",
+        "required": ["currentPassword", "newPassword"],
+        "properties": {
+          "currentPassword": { "type": "string", "example": "anterior123" },
+          "newPassword": { "type": "string", "example": "NuevaSegura!2025" }
+        }
+      },
+      "ChangeRoleRequest": {
+        "type": "object",
+        "required": ["role"],
+        "properties": {
+          "role": { "type": "string", "example": "admin" }
+        }
+      },
+      "UpdateUserRequest": {
+        "type": "object",
+        "properties": {
+          "username": { "type": "string", "example": "juanp" },
+          "gmail": { "type": "string", "example": "juan@example.com" },
+          "name": { "type": "string", "example": "Juan Pérez" },
+          "phone": { "type": "string", "example": "555-1234" }
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": { "description": "Petición inválida" },
+      "Unauthorized": { "description": "No autorizado" },
+      "NotFound": { "description": "Recurso no encontrado" },
+      "Conflict": { "description": "Conflicto o duplicado" },
+      "ServerError": { "description": "Error interno del servidor" }
+    }
+  },
+  "paths": {
+    "/auth/": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Login principal con validaciones de reglas",
+        "description": "Autentica al usuario usando reglas de validación y devuelve un token JWT si las credenciales son correctas.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "gmail": { "type": "string", "example": "juan@example.com" },
+                  "password": { "type": "string", "example": "123456789" }
+                },
+                "required": ["gmail", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Inicio de sesión exitoso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": { "type": "boolean", "example": true },
+                    "token": { "type": "string", "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." },
+                    "user": { "$ref": "#/components/schemas/User" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "422": { "description": "Error de validación (rules)" }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Iniciar sesión (gmail o username + password)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/LoginRequest" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Inicio de sesión correcto",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/LoginResponse" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "Perfil del usuario autenticado",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Usuario autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": { "type": "boolean", "example": true },
+                    "user": { "$ref": "#/components/schemas/User" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+
+    "/routes/new_journey": {
+      "post": {
+        "tags": ["Journeys"],
+        "summary": "Crear un nuevo recorrido",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "origin": { "type": "string", "example": "CUTonala" },
+                  "destination": { "type": "string", "example": "Parque Metropolitano" },
+                  "distance": { "type": "number", "example": 10.5 },
+                  "duration": { "type": "number", "example": 25 },
+                  "mode": { "type": "string", "example": "auto" }
+                },
+                "required": ["origin", "destination"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Recorrido creado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": { "type": "boolean", "example": true },
+                    "journeyId": { "type": "integer", "example": 7 },
+                    "message": { "type": "string", "example": "Journey created successfully" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/routes/all_journeys": {
+      "get": {
+        "tags": ["Journeys"],
+        "summary": "Obtener todos los recorridos",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Lista de recorridos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": { "type": "integer", "example": 1 },
+                      "origin": { "type": "string", "example": "CUTonala" },
+                      "destination": { "type": "string", "example": "Parque Metropolitano" },
+                      "distance": { "type": "number", "example": 10.5 },
+                      "duration": { "type": "number", "example": 25 },
+                      "mode": { "type": "string", "example": "auto" },
+                      "createdAt": { "type": "string", "format": "date-time", "example": "2025-10-15T18:23:00Z" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/routes/journey/{id}": {
+      "get": {
+        "tags": ["Journeys"],
+        "summary": "Obtener un recorrido por su ID",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer", "example": 3 },
+            "description": "ID del recorrido"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Recorrido encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "integer", "example": 3 },
+                    "origin": { "type": "string", "example": "CUTonala" },
+                    "destination": { "type": "string", "example": "Centro" },
+                    "distance": { "type": "number", "example": 12.7 },
+                    "duration": { "type": "number", "example": 30 },
+                    "mode": { "type": "string", "example": "auto" }
+                  }
+                }
+              }
+            }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+
+    "/users/{id}": {
+      "put": {
+        "tags": ["Users"],
+        "summary": "Actualizar usuario",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" }, "description": "ID del usuario a actualizar" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/UpdateUserRequest" } }
+          }
+        },
+        "responses": {
+          "200": { "description": "Usuario actualizado correctamente", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UpdateUserResponse" } } } },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      },
+      "delete": {
+        "tags": ["Users"],
+        "summary": "Eliminar usuario",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" }, "description": "ID del usuario a eliminar" }
+        ],
+        "responses": {
+          "200": { "description": "Usuario eliminado correctamente", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/BasicMessage" } } } },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/users/{id}/password": {
+      "patch": {
+        "tags": ["Users"],
+        "summary": "Cambiar contraseña",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/ChangePasswordRequest" } }
+          }
+        },
+        "responses": {
+          "200": { "description": "Contraseña actualizada correctamente", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/BasicMessage" } } } },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/users/{id}/role": {
+      "patch": {
+        "tags": ["Users"],
+        "summary": "Cambiar rol de usuario",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/ChangeRoleRequest" } }
+          }
+        },
+        "responses": {
+          "200": { "description": "Rol actualizado correctamente", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UpdateUserResponse" } } } },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    }
+  }
+}

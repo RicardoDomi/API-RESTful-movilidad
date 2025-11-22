@@ -1,10 +1,18 @@
-const { Sequelize } = require("sequelize");
-const path = require("path");
+// src/config/Authdatabase.js
+require('dotenv').config();
+const { Sequelize } = require('sequelize');
 
-const sequelize = new Sequelize({
-  dialect: "sqlite",
-  storage: path.join(__dirname, "../../data/dev.sqlite"),
-  logging: false,
-});
+
+const sequelize = new Sequelize(
+  process.env.DB_NAME,
+  process.env.DB_USER,
+  process.env.DB_PASSWORD,
+  {
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT || 3306, 
+    dialect: 'mysql',
+    logging: console.log,
+  }
+);
 
 module.exports = sequelize;
