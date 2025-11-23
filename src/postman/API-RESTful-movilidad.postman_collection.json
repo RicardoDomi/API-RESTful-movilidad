@@ -1,0 +1,115 @@
+{
+  "info": {
+    "_postman_id": "c51df6c0-aaaa-bbbb-cccc-1234567890ff",
+    "name": "API RESTful Movilidad - Users (Demo)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Colección para probar los endpoints de Users en modo DEMO (sin base de datos)."
+  },
+  "item": [
+    {
+      "name": "GET - Todos los usuarios",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/users",
+          "host": ["{{base_url}}"],
+          "path": ["users"]
+        }
+      }
+    },
+    {
+      "name": "GET - Usuario por ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/users/1",
+          "host": ["{{base_url}}"],
+          "path": ["users", "1"]
+        }
+      }
+    },
+    {
+      "name": "PUT - Actualizar usuario (id=1)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"demo_actualizado\",\n  \"name\": \"Usuario Demo Actualizado\",\n  \"gmail\": \"demo_act@example.com\",\n  \"phone\": \"555-9999\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/users/1",
+          "host": ["{{base_url}}"],
+          "path": ["users", "1"]
+        }
+      }
+    },
+    {
+      "name": "PATCH - Cambiar contraseña (id=1)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"currentPassword\": \"12345678\",\n  \"newPassword\": \"NuevaSegura!2025\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/users/1/password",
+          "host": ["{{base_url}}"],
+          "path": ["users", "1", "password"]
+        }
+      }
+    },
+    {
+      "name": "PATCH - Cambiar rol (id=1 → admin)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"role\": \"admin\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/users/1/role",
+          "host": ["{{base_url}}"],
+          "path": ["users", "1", "role"]
+        }
+      }
+    },
+    {
+      "name": "DELETE - Eliminar usuario (id=2)",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/users/2",
+          "host": ["{{base_url}}"],
+          "path": ["users", "2"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000"
+    }
+  ]
+}

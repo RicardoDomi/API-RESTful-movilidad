@@ -13,6 +13,8 @@ const usersRoutes = require("./src/routes/users");
 const appikey = require("./src/middleware/middlewareHistory")
 const swaggerDocument = require(path.join(__dirname, "src", "docs", "openapi.json"));
 const errorHandler = require("./src/middleware/errorHandler");
+const requestLogger = require("./src/middleware/requestLogger");
+
 dotenv.config();
 
 const sequelize = require("./src/config/Authdatabase");
@@ -30,6 +32,16 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
+
+app.use(requestLogger);
+
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  })
+);
+
 app.use(
   helmet({
     contentSecurityPolicy: false,
@@ -79,8 +91,7 @@ async function start() {
 if (require.main === module && process.env.NODE_ENV !== "test") {
   start().catch((e) => {
   console.error("[DB] Error completo:");
-  console.error(e);  // 👈 Muestra TODO el objeto, no solo message
-  // process.exit(1); // 👈 Coméntalo mientras depuramos
+  console.error(e);  
 });
 
 }
