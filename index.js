@@ -5,21 +5,25 @@ const pino = require("pino");
 const pinoHttp = require("pino-http");
 const morgan = require("morgan");
 const path = require("path");
-const swaggerUi = require('swagger-ui-express');
+const swaggerUi = require("swagger-ui-express");
 const journeysRoutes = require("./src/routes/journey");
 const authRoutes = require("./src/routes/auth");
-
+const historyRoutes = require("./src/routes/history");
 const usersRoutes = require("./src/routes/users");
-
+const appikey = require("./src/middleware/middlewareHistory")
 const swaggerDocument = require(path.join(__dirname, "src", "docs", "openapi.json"));
 const errorHandler = require("./src/middleware/errorHandler");
 dotenv.config();
 
+const sequelize = require("./src/config/Authdatabase");
+require("./src/models/Modelhistory")(sequelize);
+
 const logger = pino({
   level: process.env.LOG_LEVEL || "info",
-  transport: process.env.NODE_ENV !== "production"
-    ? { target: "pino-pretty", options: { colorize: true } }
-    : undefined,
+  transport:
+    process.env.NODE_ENV !== "production"
+      ? { target: "pino-pretty", options: { colorize: true } }
+      : undefined,
 });
 
 const app = express();
@@ -37,10 +41,12 @@ app.use(pinoHttp({ logger }));
 app.use(morgan("dev"));
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use("/auth", authRoutes);
 app.use("/routes", journeysRoutes);
+app.use("/history", historyRoutes);
 
+// swagger
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument, { explorer: true }));
 
 app.use("/users", usersRoutes);
 
@@ -56,31 +62,31 @@ app.get("/dashboard", (_req, res) =>
   res.sendFile(path.join(__dirname, "public", "dashboard.html"))
 );
 
-// const Modelauth = require("./src/models/Modelauth");
-// const sequelize = require("./src/config/Authdatabase");
-
-// async function seedDemoUser() {
-//   try {
-//     await sequelize.authenticate();
-//     logger.info("Conexión a BD OK (SQLite)");
-//     await sequelize.sync();
-
-//     const [u, created] = await Modelauth.findOrCreate({
-//       where: { username: "demo" },
-//       defaults: { password: "12345678" },
-//     });
-
-//     if (created) logger.info("Usuario demo creado (demo / 12345678)");
-//     else logger.info("Usuario demo ya existe (demo / 12345678)");
-//   } catch (e) {
-//     logger.warn("No se pudo crear usuario demo: " + e.message);
-//   }
-// }
-// seedDemoUser();
-
 app.use(errorHandler);
-app.listen(PORT, () => {
-  logger.info(`Servidor escuchando en el puerto ${PORT}`);
+
+
+async function start() {
+  await sequelize.authenticate();
+  await sequelize.sync({ alter: true });
+  if (process.env.NODE_ENV !== "test")
+    console.log("[DB] Conexión OK y modelos sincronizados");
+
+  const server = app.listen(PORT, () => {
+    logger.info(`Servidor escuchando en el puerto ${PORT}`);
+  });
+  return server;
+}
+if (require.main === module && process.env.NODE_ENV !== "test") {
+  start().catch((e) => {
+  console.error("[DB] Error completo:");
+  console.error(e);  // 👈 Muestra TODO el objeto, no solo message
+  // process.exit(1); // 👈 Coméntalo mientras depuramos
 });
 
-module.exports = app;
+}
+
+
+
+
+module.exports = start;
+

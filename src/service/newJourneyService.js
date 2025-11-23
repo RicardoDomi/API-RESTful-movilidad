@@ -7,4 +7,4 @@ exports.createJourney = async (journeyData)=>{
     } catch(error){
     throw error;
     }
-};
+}; 

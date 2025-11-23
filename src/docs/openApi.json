@@ -14,6 +14,7 @@
   "tags": [
     { "name": "Auth", "description": "Endpoints de autenticación" },
     { "name": "Journeys", "description": "Gestión de recorridos" },
+    { "name": "History", "description": "Historial de recorridos" },
     { "name": "Users", "description": "Gestión de usuarios del sistema" }
   ],
   "components": {
@@ -22,6 +23,12 @@
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "JWT"
+      },
+      "historyApiKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-api-key",
+        "description": "API key requerida para los endpoints de historial"
       }
     },
     "schemas": {
@@ -34,7 +41,7 @@
           "gmail": { "type": "string", "example": "juan@example.com" },
           "phone": { "type": "string", "example": "555-1234" },
           "role": { "type": "string", "example": "user" }
-          }
+        }
       },
       "LoginRequest": {
         "type": "object",
@@ -96,6 +103,79 @@
           "name": { "type": "string", "example": "Juan Pérez" },
           "phone": { "type": "string", "example": "555-1234" }
         }
+      },
+
+      
+      "RouteHistory": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "userId": { "type": "integer", "example": 5 },
+          "originLat": { "type": "number", "format": "float", "example": 20.6543 },
+          "originLng": { "type": "number", "format": "float", "example": -103.3254 },
+          "destinationLat": { "type": "number", "format": "float", "example": 20.6732 },
+          "destinationLng": { "type": "number", "format": "float", "example": -103.3476 },
+          "distanceM": { "type": "integer", "example": 3500 },
+          "durationS": { "type": "integer", "example": 600 },
+          "mode": { "type": "string", "example": "car" },
+          "usedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2025-11-22T16:30:00Z"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true,
+            "example": { "weather": "sunny", "notes": "Ruta rápida" }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2025-11-22T16:00:00Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2025-11-22T16:10:00Z"
+          }
+        }
+      },
+      "CreateRouteHistoryRequest": {
+        "type": "object",
+        "required": ["originLat", "originLng", "destinationLat", "destinationLng"],
+        "properties": {
+          "originLat": { "type": "number", "format": "float", "example": 20.6543 },
+          "originLng": { "type": "number", "format": "float", "example": -103.3254 },
+          "destinationLat": { "type": "number", "format": "float", "example": 20.6732 },
+          "destinationLng": { "type": "number", "format": "float", "example": -103.3476 },
+          "distanceM": { "type": "integer", "example": 3500 },
+          "durationS": { "type": "integer", "example": 600 },
+          "mode": { "type": "string", "example": "car" },
+          "usedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2025-11-22T16:30:00Z"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true,
+            "example": { "notes": "Ida a CUT" }
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string", "example": "userId inválido" },
+          "details": {
+            "type": "array",
+            "items": { "type": "string" },
+            "example": [
+              "originLat inválido",
+              "originLng inválido"
+            ]
+          }
+        }
       }
     },
     "responses": {
@@ -104,6 +184,22 @@
       "NotFound": { "description": "Recurso no encontrado" },
       "Conflict": { "description": "Conflicto o duplicado" },
       "ServerError": { "description": "Error interno del servidor" }
+    },
+    "parameters": {
+      "UserIdParam": {
+        "name": "userId",
+        "in": "path",
+        "required": true,
+        "schema": { "type": "integer", "minimum": 1 },
+        "description": "ID del usuario dueño del historial"
+      },
+      "HistoryIdParam": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": { "type": "integer", "minimum": 1 },
+        "description": "ID del registro de historial"
+      }
     }
   },
   "paths": {
@@ -136,7 +232,10 @@
                   "type": "object",
                   "properties": {
                     "ok": { "type": "boolean", "example": true },
-                    "token": { "type": "string", "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." },
+                    "token": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    },
                     "user": { "$ref": "#/components/schemas/User" }
                   }
                 }
@@ -156,14 +255,18 @@
         "requestBody": {
           "required": true,
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/LoginRequest" } }
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LoginRequest" }
+            }
           }
         },
         "responses": {
           "200": {
             "description": "Inicio de sesión correcto",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/LoginResponse" } }
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LoginResponse" }
+              }
             }
           },
           "400": { "$ref": "#/components/responses/BadRequest" },
@@ -195,7 +298,6 @@
         }
       }
     },
-
     "/routes/new_journey": {
       "post": {
         "tags": ["Journeys"],
@@ -209,7 +311,10 @@
                 "type": "object",
                 "properties": {
                   "origin": { "type": "string", "example": "CUTonala" },
-                  "destination": { "type": "string", "example": "Parque Metropolitano" },
+                  "destination": {
+                    "type": "string",
+                    "example": "Parque Metropolitano"
+                  },
                   "distance": { "type": "number", "example": 10.5 },
                   "duration": { "type": "number", "example": 25 },
                   "mode": { "type": "string", "example": "auto" }
@@ -229,7 +334,10 @@
                   "properties": {
                     "ok": { "type": "boolean", "example": true },
                     "journeyId": { "type": "integer", "example": 7 },
-                    "message": { "type": "string", "example": "Journey created successfully" }
+                    "message": {
+                      "type": "string",
+                      "example": "Journey created successfully"
+                    }
                   }
                 }
               }
@@ -257,11 +365,18 @@
                     "properties": {
                       "id": { "type": "integer", "example": 1 },
                       "origin": { "type": "string", "example": "CUTonala" },
-                      "destination": { "type": "string", "example": "Parque Metropolitano" },
+                      "destination": {
+                        "type": "string",
+                        "example": "Parque Metropolitano"
+                      },
                       "distance": { "type": "number", "example": 10.5 },
                       "duration": { "type": "number", "example": 25 },
                       "mode": { "type": "string", "example": "auto" },
-                      "createdAt": { "type": "string", "format": "date-time", "example": "2025-10-15T18:23:00Z" }
+                      "createdAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-15T18:23:00Z"
+                      }
                     }
                   }
                 }
@@ -311,22 +426,255 @@
       }
     },
 
+ 
+
+    "/history/{userId}": {
+      "get": {
+        "tags": ["History"],
+        "summary": "Obtener historial de rutas de un usuario",
+        "security": [{ "historyApiKey": [] }],
+        "parameters": [
+          { "$ref": "#/components/parameters/UserIdParam" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de rutas del usuario",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Historial obtenido correctamente"
+                    },
+                    "history": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/RouteHistory" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Sin registros para ese usuario",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      },
+      "post": {
+        "tags": ["History"],
+        "summary": "Crear un nuevo registro de historial de ruta para un usuario",
+        "security": [{ "historyApiKey": [] }],
+        "parameters": [
+          { "$ref": "#/components/parameters/UserIdParam" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateRouteHistoryRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Ruta creada correctamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Ruta creada correctamente"
+                    },
+                    "route": { "$ref": "#/components/schemas/RouteHistory" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Body inválido",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/history/{userId}/{id}": {
+      "put": {
+        "tags": ["History"],
+        "summary": "Actualizar un registro de historial",
+        "security": [{ "historyApiKey": [] }],
+        "parameters": [
+          { "$ref": "#/components/parameters/UserIdParam" },
+          { "$ref": "#/components/parameters/HistoryIdParam" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "originLat": { "type": "number", "format": "float" },
+                  "originLng": { "type": "number", "format": "float" },
+                  "destinationLat": { "type": "number", "format": "float" },
+                  "destinationLng": { "type": "number", "format": "float" },
+                  "distanceM": { "type": "integer", "minimum": 0 },
+                  "durationS": { "type": "integer", "minimum": 0 },
+                  "mode": { "type": "string" },
+                  "usedAt": { "type": "string", "format": "date-time" },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ruta actualizada correctamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Ruta actualizada correctamente"
+                    },
+                    "route": { "$ref": "#/components/schemas/RouteHistory" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros o body inválidos",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Registro no encontrado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      },
+      "delete": {
+        "tags": ["History"],
+        "summary": "Eliminar un registro de historial",
+        "security": [{ "historyApiKey": [] }],
+        "parameters": [
+          { "$ref": "#/components/parameters/UserIdParam" },
+          { "$ref": "#/components/parameters/HistoryIdParam" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ruta eliminada correctamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Ruta eliminada correctamente"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No encontrado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+
     "/users/{id}": {
       "put": {
         "tags": ["Users"],
         "summary": "Actualizar usuario",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
-          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" }, "description": "ID del usuario a actualizar" }
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID del usuario a actualizar"
+          }
         ],
         "requestBody": {
           "required": true,
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/UpdateUserRequest" } }
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateUserRequest" }
+            }
           }
         },
         "responses": {
-          "200": { "description": "Usuario actualizado correctamente", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UpdateUserResponse" } } } },
+          "200": {
+            "description": "Usuario actualizado correctamente",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/UpdateUserResponse" }
+              }
+            }
+          },
           "404": { "$ref": "#/components/responses/NotFound" },
           "500": { "$ref": "#/components/responses/ServerError" }
         }
@@ -336,10 +684,23 @@
         "summary": "Eliminar usuario",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
-          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" }, "description": "ID del usuario a eliminar" }
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID del usuario a eliminar"
+          }
         ],
         "responses": {
-          "200": { "description": "Usuario eliminado correctamente", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/BasicMessage" } } } },
+          "200": {
+            "description": "Usuario eliminado correctamente",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BasicMessage" }
+              }
+            }
+          },
           "404": { "$ref": "#/components/responses/NotFound" },
           "500": { "$ref": "#/components/responses/ServerError" }
         }
@@ -351,16 +712,32 @@
         "summary": "Cambiar contraseña",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
-          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "string" }
+          }
         ],
         "requestBody": {
           "required": true,
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/ChangePasswordRequest" } }
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordRequest"
+              }
+            }
           }
         },
         "responses": {
-          "200": { "description": "Contraseña actualizada correctamente", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/BasicMessage" } } } },
+          "200": {
+            "description": "Contraseña actualizada correctamente",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BasicMessage" }
+              }
+            }
+          },
           "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
@@ -374,16 +751,32 @@
         "summary": "Cambiar rol de usuario",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
-          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "string" }
+          }
         ],
         "requestBody": {
           "required": true,
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/ChangeRoleRequest" } }
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeRoleRequest"
+              }
+            }
           }
         },
         "responses": {
-          "200": { "description": "Rol actualizado correctamente", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UpdateUserResponse" } } } },
+          "200": {
+            "description": "Rol actualizado correctamente",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/UpdateUserResponse" }
+              }
+            }
+          },
           "400": { "$ref": "#/components/responses/BadRequest" },
           "404": { "$ref": "#/components/responses/NotFound" },
           "500": { "$ref": "#/components/responses/ServerError" }
