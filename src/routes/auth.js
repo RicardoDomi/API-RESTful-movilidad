@@ -55,6 +55,6 @@ const signupRules = [
   })
 ];
 
-router.post("/",loginRules,validate,loginLimiter,authController.loginUser);
+router.post("/",loginLimiter, loginRules,validate,authController.loginUser);
 router.post("/signup",signupRules,validate,authController.signupUser)
 module.exports = router;
