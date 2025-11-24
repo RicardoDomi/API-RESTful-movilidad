@@ -1,0 +1,155 @@
+{
+	"info": {
+		"_postman_id": "d8c416b0-751f-4be5-9b1f-054e123aa775",
+		"name": "appmovilidad",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "47637345"
+	},
+	"item": [
+		{
+			"name": "http://localhost:3000/routes/new_journey",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"start_location\": \"Madrid, España\",\r\n  \"end_location\": \"Barcelona, España\",\r\n  \"distance\": 620.3,\r\n  \"duration\": 6.5,\r\n  \"date_time\": \"2024-11-20T14:00:00.000Z\",\r\n  \"route_points\": [\r\n    {\r\n      \"lat\": 40.4168,\r\n      \"lng\": -3.7038,\r\n      \"name\": \"Madrid\"\r\n    },\r\n    {\r\n      \"lat\": 41.3851,\r\n      \"lng\": 2.1734,\r\n      \"name\": \"Barcelona\"\r\n    }\r\n  ],\r\n  \"is_popular\": false,\r\n  \"rating\": 4.2,\r\n  \"usage_count\": 0\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/routes/new_journey",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"routes",
+						"new_journey"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:3000/auth/",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"email\":\"juan@example.com\",\r\n    \"password\":\"123456789\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/auth/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:3000 /routes/all_journeys",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc2MDMzMzU4OSwiZXhwIjoxNzYwNDE5OTg5fQ.6n6E14PRMIO2vvq5h29dcyKmSBCTgvmhM1iHQqyC8Mw",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000 /routes/all_journeys",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000 ",
+					"path": [
+						"routes",
+						"all_journeys"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:3000 /routes/journey/1",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc2MDMzMzU4OSwiZXhwIjoxNzYwNDE5OTg5fQ.6n6E14PRMIO2vvq5h29dcyKmSBCTgvmhM1iHQqyC8Mw",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000 /routes/journey/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000 ",
+					"path": [
+						"routes",
+						"journey",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "New Request",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		}
+	]
+}
